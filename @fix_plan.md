@@ -63,21 +63,68 @@
 - [ ] Add error boundaries
 - [ ] Performance testing with 1000+ leads
 
-## Phase 8: Team Deployment (PRIORITY - Do This Next!)
+## Phase 8: Team Deployment - COMPLETE!
 
 - [x] Update Prisma schema from SQLite to PostgreSQL
 - [x] Create .env.example documenting DATABASE_URL
-- [ ] Create Neon PostgreSQL database at neon.tech
-- [ ] Configure DATABASE_URL environment variable
-- [ ] Run prisma db push against Neon database
-- [ ] Update seed script to use upsert (avoid duplicates)
-- [ ] Seed production database with team members
-- [ ] Push code to GitHub repository
-- [ ] Connect repo to Vercel
-- [ ] Add DATABASE_URL to Vercel environment variables
-- [ ] Deploy to Vercel
-- [ ] Verify live URL works for team access
-- [ ] Test on mobile browser
+- [x] Create Neon PostgreSQL database at neon.tech
+- [x] Configure DATABASE_URL environment variable
+- [x] Run prisma db push against Neon database
+- [x] Seed production database with team members
+- [x] Push code to GitHub repository
+- [x] Connect repo to Vercel
+- [x] Add DATABASE_URL to Vercel environment variables
+- [x] Deploy to Vercel
+- [x] Live URL: https://pipeline-crm-rho.vercel.app
+
+## Phase 9: Search & Filter (Priority: P1)
+
+- [ ] Add search input to Kanban header/toolbar
+- [ ] Implement real-time search filtering by lead name
+- [ ] Add case-insensitive search
+- [ ] Add clear search button
+- [ ] Show "No results" empty state when search has no matches
+- [ ] Add filter dropdown for social platforms (Has TikTok, Has Twitter, etc.)
+- [ ] Implement multi-select filter with AND logic
+- [ ] Show active filter badges
+- [ ] Add "Clear all filters" button
+
+## Phase 10: Bulk Actions (Priority: P2)
+
+- [ ] Add checkbox to each lead card
+- [ ] Add "Select All" checkbox in toolbar
+- [ ] Show bulk action toolbar when items are selected
+- [ ] Implement bulk assign (assign multiple leads to one team member)
+- [ ] Implement bulk stage move (move multiple leads to a stage)
+- [ ] Add automatic note when bulk moving leads
+- [ ] Add success/error toast notifications
+- [ ] Add undo capability (10 second window)
+
+## Phase 11: Import & Export (Priority: P2)
+
+- [ ] Add Export button to toolbar
+- [ ] Implement CSV export of all leads
+- [ ] Include all fields in export (name, socials, stage, assignee, notes count)
+- [ ] Add date to export filename
+- [ ] Add Import button to toolbar
+- [ ] Build CSV file upload and parsing
+- [ ] Build column mapping UI
+- [ ] Show preview before importing
+- [ ] Implement duplicate detection by email
+- [ ] Show import progress indicator
+- [ ] Show summary of imported/skipped leads
+
+## Phase 12: Activity & Dashboard (Priority: P3)
+
+- [ ] Create Activity model in Prisma schema
+- [ ] Log activities on lead create, update, stage change, note add
+- [ ] Build Activity feed page or sidebar
+- [ ] Show relative timestamps in activity feed
+- [ ] Make activity items clickable to navigate to lead
+- [ ] Add filter by team member or action type
+- [ ] Build stats cards (total leads, weekly delta, conversion rate)
+- [ ] Show breakdown by stage
+- [ ] Show breakdown by team member
 
 ## Completed
 
@@ -90,8 +137,10 @@
 - [x] Lead card and detail modal
 - [x] Team page created
 - [x] npm dependencies installed
-- [x] Local SQLite database working
 - [x] Prisma migrated to PostgreSQL provider
+- [x] Neon database connected
+- [x] Deployed to Vercel (https://pipeline-crm-rho.vercel.app)
+- [x] GitHub repo: https://github.com/cryptodoran/pipeline-crm
 
 ## Guiding Principles
 

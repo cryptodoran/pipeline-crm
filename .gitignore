@@ -44,3 +44,5 @@ logs/*.log
 .response_analysis
 status.json
 progress.json
+
+.vercel

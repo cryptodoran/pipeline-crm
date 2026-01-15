@@ -441,6 +441,206 @@ And leads can be assigned to them
 
 ---
 
+## Epic 8: Search & Filter
+
+### Story 8.1: Finding a Lead by Name
+
+**As** a team member looking for a specific lead,
+**I want** to search by name across all pipeline stages,
+**So that** I can quickly find anyone without scrolling.
+
+**Scenario:**
+```
+Given I have 200 leads across all stages
+When I type "Alex" in the search box
+Then only leads with "Alex" in their name appear
+And the Kanban filters to show matching leads
+And I can clear search to see all leads again
+```
+
+**Acceptance Criteria:**
+- [ ] Search input in header/toolbar
+- [ ] Real-time filtering as user types
+- [ ] Case-insensitive search
+- [ ] Clear button to reset
+- [ ] Shows "No results" if nothing matches
+
+---
+
+### Story 8.2: Filtering by Social Platform
+
+**As** a partnerships manager targeting TikTok creators,
+**I want** to filter leads that have a TikTok handle,
+**So that** I can focus on platform-specific outreach.
+
+**Scenario:**
+```
+Given I click the filter dropdown
+When I select "Has TikTok"
+Then only leads with a tiktok field are shown
+And I can combine with other filters (e.g., stage)
+```
+
+**Acceptance Criteria:**
+- [ ] Filter dropdown with platform options
+- [ ] Multi-select filters (AND logic)
+- [ ] Filter badge shows active filters
+- [ ] Quick clear all filters
+
+---
+
+## Epic 9: Bulk Actions
+
+### Story 9.1: Assigning Multiple Leads at Once
+
+**As** a team lead onboarding a new team member,
+**I want** to select multiple unassigned leads and assign them in bulk,
+**So that** I can distribute work efficiently.
+
+**Scenario:**
+```
+Given I'm viewing 20 unassigned leads
+When I click checkbox on 5 lead cards
+And I click "Bulk Assign"
+And select "Sarah Kim"
+Then all 5 leads are assigned to Sarah
+And a success toast confirms "5 leads assigned"
+```
+
+**Acceptance Criteria:**
+- [ ] Checkbox on each lead card
+- [ ] "Select All" option
+- [ ] Bulk action toolbar appears when items selected
+- [ ] Bulk assign dropdown
+- [ ] Success/error feedback
+
+---
+
+### Story 9.2: Moving Multiple Leads to a Stage
+
+**As** a team member cleaning up the pipeline,
+**I want** to select stale leads and move them to Lost in bulk,
+**So that** I can keep the pipeline accurate without repetitive clicking.
+
+**Scenario:**
+```
+Given I select 8 leads in "Contacted" that went cold
+When I click "Bulk Move" and select "Lost"
+Then all 8 leads move to the Lost column
+And each gets a system note "Moved to Lost via bulk action"
+```
+
+**Acceptance Criteria:**
+- [ ] Bulk move to any stage
+- [ ] Automatic note added for audit trail
+- [ ] Animation shows cards moving
+- [ ] Can undo within 10 seconds
+
+---
+
+## Epic 10: Import & Export
+
+### Story 10.1: Exporting Leads to CSV
+
+**As** a team lead preparing a report,
+**I want** to export all leads to a CSV file,
+**So that** I can analyze data in Excel or share with stakeholders.
+
+**Scenario:**
+```
+Given I click "Export" in the toolbar
+When I select "All Leads" and "CSV"
+Then a file downloads: pipeline-leads-2026-01-15.csv
+And it contains all lead fields including notes count
+```
+
+**Acceptance Criteria:**
+- [ ] Export button in toolbar
+- [ ] CSV format with headers
+- [ ] Includes all fields (name, socials, stage, assignee)
+- [ ] Option to export current filter or all
+- [ ] Filename includes date
+
+---
+
+### Story 10.2: Importing Leads from CSV
+
+**As** a team member with a spreadsheet of conference contacts,
+**I want** to import leads from a CSV file,
+**So that** I don't have to enter them one by one.
+
+**Scenario:**
+```
+Given I have a CSV with columns: name, email, twitter, telegram
+When I click "Import" and upload the file
+Then I see a preview of 50 leads to be imported
+And I can map CSV columns to CRM fields
+And clicking "Import" creates all 50 leads
+```
+
+**Acceptance Criteria:**
+- [ ] Import button opens file picker
+- [ ] CSV parsing with header detection
+- [ ] Column mapping UI
+- [ ] Preview before import
+- [ ] Duplicate detection (by email)
+- [ ] Import progress indicator
+- [ ] Summary of imported/skipped
+
+---
+
+## Epic 11: Activity & Notifications
+
+### Story 11.1: Seeing Recent Activity
+
+**As** a team lead starting my day,
+**I want** to see what happened overnight,
+**So that** I know what changed without checking every lead.
+
+**Scenario:**
+```
+Given team members were active yesterday
+When I open the Activity feed
+Then I see:
+  - "Sarah moved Alex Chen to Qualified" (2h ago)
+  - "Bob added note to Maya Studios" (5h ago)
+  - "Carol created new lead: Jordan Smith" (8h ago)
+```
+
+**Acceptance Criteria:**
+- [ ] Activity feed page or sidebar
+- [ ] Shows lead changes, note additions, stage moves
+- [ ] Relative timestamps
+- [ ] Click to navigate to lead
+- [ ] Filter by team member or action type
+
+---
+
+### Story 11.2: Lead Count Dashboard
+
+**As** a founder tracking growth,
+**I want** to see pipeline metrics at a glance,
+**So that** I understand our lead flow.
+
+**Scenario:**
+```
+Given I'm on the dashboard
+Then I see:
+  - Total leads: 156
+  - This week: +23 new leads
+  - Conversion rate: 12% (Won / Total)
+  - By stage: NEW(45) CONTACTED(32) ENGAGED(28)...
+```
+
+**Acceptance Criteria:**
+- [ ] Stats cards at top of Kanban or separate dashboard
+- [ ] Total count, weekly delta
+- [ ] Conversion funnel visualization
+- [ ] Breakdown by stage
+- [ ] Breakdown by team member
+
+---
+
 ## Story Map Summary
 
 | Epic | Priority | User Value |
@@ -452,6 +652,10 @@ And leads can be assigned to them
 | Platform Intelligence | P2 | Efficiency boost |
 | Data Integrity | P2 | Trust in the system |
 | **Team Access & Deployment** | **P0** | **Can't use CRM if only local** |
+| **Search & Filter** | **P1** | **Find leads fast** |
+| **Bulk Actions** | **P2** | **Efficiency at scale** |
+| **Import & Export** | **P2** | **Data portability** |
+| **Activity & Notifications** | **P3** | **Team awareness** |
 
 ---
 
