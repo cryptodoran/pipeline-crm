@@ -126,6 +126,83 @@
 - [ ] Show breakdown by stage
 - [ ] Show breakdown by team member
 
+## Phase 13: Tags & Categories (Priority: P1)
+
+- [ ] Create Tag model in Prisma schema (many-to-many with Lead)
+- [ ] Add tag input with autocomplete to lead detail
+- [ ] Allow creating new tags on the fly
+- [ ] Show tags as colored pills on lead cards
+- [ ] Support multiple tags per lead
+- [ ] Add tag filter to Kanban board
+- [ ] Build tags management page
+- [ ] Implement rename tag (updates all leads)
+- [ ] Implement delete tag (removes from all leads)
+- [ ] Show lead count per tag
+
+## Phase 14: Reminders & Follow-ups (Priority: P1)
+
+- [ ] Create Reminder model in Prisma schema
+- [ ] Add "Set Reminder" button to lead detail
+- [ ] Build date/time picker for reminder
+- [ ] Add optional note field for reminder
+- [ ] Show reminder icon on lead cards with upcoming reminders
+- [ ] Build "My Reminders" page showing upcoming reminders
+- [ ] Implement mark reminder complete
+- [ ] Implement snooze (1 day, 1 week)
+- [ ] Build "Today's Follow-ups" section
+
+## Phase 15: Lead Sources (Priority: P2)
+
+- [ ] Add source field to Lead model
+- [ ] Create Source model for predefined sources
+- [ ] Add source dropdown to lead creation form
+- [ ] Allow custom source entry
+- [ ] Show source badge on lead cards
+- [ ] Add source filter to Kanban
+- [ ] Show source breakdown in dashboard
+- [ ] Calculate conversion rate by source
+
+## Phase 16: Dark Mode & Themes (Priority: P3)
+
+- [ ] Add theme toggle button to header (sun/moon icon)
+- [ ] Create dark theme CSS variables
+- [ ] Style all components for dark mode
+- [ ] Save theme preference to localStorage
+- [ ] Respect system preference by default (prefers-color-scheme)
+- [ ] Smooth transition between themes
+
+## Phase 17: Keyboard Shortcuts (Priority: P3)
+
+- [ ] Add global keyboard event listener
+- [ ] Implement "N" - Open new lead form
+- [ ] Implement "/" - Focus search box
+- [ ] Implement "?" - Show shortcuts help modal
+- [ ] Implement "Esc" - Close modals
+- [ ] Implement arrow keys for card navigation
+- [ ] Implement "E" - Edit selected lead
+- [ ] Implement "1-8" - Move lead to stage
+- [ ] Build shortcuts help modal with all commands
+
+## Phase 18: Duplicate Detection (Priority: P2)
+
+- [ ] Build duplicate detection algorithm (email match, fuzzy name)
+- [ ] Create "Duplicates" page
+- [ ] Show potential duplicate pairs
+- [ ] Build side-by-side comparison view
+- [ ] Implement merge action (combine notes, keep newer data)
+- [ ] Implement dismiss false positive
+- [ ] Run detection on lead create to warn
+
+## Phase 19: Mobile PWA (Priority: P2)
+
+- [ ] Create manifest.json with app metadata
+- [ ] Generate app icons (192x192, 512x512)
+- [ ] Configure Next.js for PWA
+- [ ] Add "Add to Home Screen" meta tags
+- [ ] Build offline indicator component
+- [ ] Ensure touch-friendly tap targets (min 44px)
+- [ ] Test on iOS and Android browsers
+
 ## Completed
 
 - [x] Project initialization

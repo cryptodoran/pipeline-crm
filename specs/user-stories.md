@@ -641,6 +641,212 @@ Then I see:
 
 ---
 
+## Epic 12: Tags & Categories
+
+### Story 12.1: Adding Tags to a Lead
+
+**As** a team member categorizing leads,
+**I want** to add custom tags like "VIP", "Crypto", "Gaming",
+**So that** I can organize leads beyond just pipeline stages.
+
+**Scenario:**
+```
+Given I'm viewing a lead's detail
+When I click "Add Tag"
+And I type "VIP" or select from existing tags
+Then the tag appears on the lead card
+And I can filter the Kanban by this tag
+```
+
+**Acceptance Criteria:**
+- [ ] Tag input with autocomplete for existing tags
+- [ ] Create new tags on the fly
+- [ ] Tags shown as colored pills on lead cards
+- [ ] Multiple tags per lead
+- [ ] Filter Kanban by tag
+
+---
+
+### Story 12.2: Managing Tags
+
+**As** a team lead,
+**I want** to manage all tags in one place,
+**So that** I can rename, merge, or delete unused tags.
+
+**Acceptance Criteria:**
+- [ ] Tags management page
+- [ ] Rename tag (updates all leads)
+- [ ] Delete tag (removes from all leads)
+- [ ] Merge duplicate tags
+- [ ] Show lead count per tag
+
+---
+
+## Epic 13: Reminders & Follow-ups
+
+### Story 13.1: Setting a Follow-up Reminder
+
+**As** a team member who needs to call back next week,
+**I want** to set a reminder on a lead,
+**So that** I don't forget to follow up.
+
+**Scenario:**
+```
+Given I'm on a lead's detail page
+When I click "Set Reminder"
+And I select "Next Tuesday at 10am"
+And I add note "Call to discuss partnership"
+Then the reminder is saved
+And I get notified when it's due
+```
+
+**Acceptance Criteria:**
+- [ ] Date/time picker for reminder
+- [ ] Optional note with reminder
+- [ ] Reminder shown on lead card with icon
+- [ ] "My Reminders" view showing upcoming
+- [ ] Mark reminder complete or snooze
+
+---
+
+### Story 13.2: Viewing Today's Follow-ups
+
+**As** a team member starting my day,
+**I want** to see all my reminders due today,
+**So that** I can prioritize my outreach.
+
+**Acceptance Criteria:**
+- [ ] "Today's Follow-ups" section or page
+- [ ] Shows lead name, reminder note, time
+- [ ] Click to open lead detail
+- [ ] Quick actions: Complete, Snooze 1 day, Snooze 1 week
+
+---
+
+## Epic 14: Lead Sources
+
+### Story 14.1: Tracking Where Leads Come From
+
+**As** a team lead analyzing our funnel,
+**I want** to tag leads with their source (Conference, Twitter DM, Referral),
+**So that** I can see which channels bring the best leads.
+
+**Scenario:**
+```
+Given I'm adding a new lead
+When I select Source: "ETHDenver 2026"
+Then the source is saved with the lead
+And I can filter by source
+And I can see conversion rates by source
+```
+
+**Acceptance Criteria:**
+- [ ] Source dropdown on lead form
+- [ ] Predefined sources + custom
+- [ ] Source shown on lead card
+- [ ] Filter by source
+- [ ] Source breakdown in dashboard
+
+---
+
+## Epic 15: Dark Mode & Themes
+
+### Story 15.1: Switching to Dark Mode
+
+**As** a team member working late,
+**I want** to switch to dark mode,
+**So that** the screen doesn't strain my eyes.
+
+**Scenario:**
+```
+Given I click the theme toggle in the header
+When I select "Dark"
+Then all UI elements switch to dark theme
+And my preference is saved for next visit
+```
+
+**Acceptance Criteria:**
+- [ ] Theme toggle in header (sun/moon icon)
+- [ ] Light and dark theme variants
+- [ ] Preference saved to localStorage
+- [ ] Respects system preference by default
+- [ ] All components styled for both themes
+
+---
+
+## Epic 16: Keyboard Shortcuts
+
+### Story 16.1: Power User Navigation
+
+**As** a power user managing many leads,
+**I want** keyboard shortcuts for common actions,
+**So that** I can work faster without touching the mouse.
+
+**Scenario:**
+```
+Given I'm on the Kanban board
+When I press "N"
+Then the new lead form opens
+When I press "/"
+Then the search box is focused
+When I press "?"
+Then the shortcuts help modal appears
+```
+
+**Acceptance Criteria:**
+- [ ] "N" - New lead
+- [ ] "/" - Focus search
+- [ ] "?" - Show shortcuts help
+- [ ] "Esc" - Close modals
+- [ ] Arrow keys - Navigate between cards
+- [ ] "E" - Edit selected lead
+- [ ] "1-8" - Move to stage 1-8
+
+---
+
+## Epic 17: Duplicate Detection
+
+### Story 17.1: Finding Potential Duplicates
+
+**As** a team lead cleaning up data,
+**I want** the system to detect potential duplicate leads,
+**So that** I can merge them and keep data clean.
+
+**Scenario:**
+```
+Given two leads have the same email or very similar names
+When I open the "Duplicates" view
+Then I see pairs of potential duplicates
+And I can review and merge them
+```
+
+**Acceptance Criteria:**
+- [ ] Duplicates detection page
+- [ ] Match by email (exact)
+- [ ] Match by name (fuzzy)
+- [ ] Side-by-side comparison view
+- [ ] Merge action (keeps notes from both)
+- [ ] Dismiss false positives
+
+---
+
+## Epic 18: Mobile PWA
+
+### Story 18.1: Installing on Phone
+
+**As** a team member on the go,
+**I want** to install Pipeline as an app on my phone,
+**So that** I can access it like a native app.
+
+**Acceptance Criteria:**
+- [ ] Valid manifest.json for PWA
+- [ ] App icon (192x192, 512x512)
+- [ ] "Add to Home Screen" prompt works
+- [ ] Offline indicator when no connection
+- [ ] Touch-friendly UI (larger tap targets)
+
+---
+
 ## Story Map Summary
 
 | Epic | Priority | User Value |
@@ -656,6 +862,13 @@ Then I see:
 | **Bulk Actions** | **P2** | **Efficiency at scale** |
 | **Import & Export** | **P2** | **Data portability** |
 | **Activity & Notifications** | **P3** | **Team awareness** |
+| **Tags & Categories** | **P1** | **Organize leads your way** |
+| **Reminders & Follow-ups** | **P1** | **Never forget to follow up** |
+| **Lead Sources** | **P2** | **Track what's working** |
+| **Dark Mode & Themes** | **P3** | **Comfortable viewing** |
+| **Keyboard Shortcuts** | **P3** | **Power user speed** |
+| **Duplicate Detection** | **P2** | **Clean data** |
+| **Mobile PWA** | **P2** | **Access anywhere** |
 
 ---
 
