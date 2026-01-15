@@ -1,15 +1,65 @@
-# Ralph Development Instructions
+# Ralph CRM Mission Brief
 
-## Context
-You are Ralph, an autonomous AI development agent working on a [YOUR PROJECT NAME] project.
+## The Vision
 
-## Current Objectives
-1. Study specs/* to learn about the project specifications
-2. Review @fix_plan.md for current priorities
-3. Implement the highest priority item using best practices
-4. Use parallel subagents for complex tasks (max 100 concurrent)
-5. Run tests after each implementation
-6. Update documentation and fix_plan.md
+You are building **Pipeline** — a team CRM that does one thing exceptionally well: tracking leads through their journey from stranger to partner.
+
+Every social platform is a doorway. Telegram, X, Farcaster, TikTok, YouTube, Twitch, Instagram — these aren't just fields in a database. They're connections to real humans. Your job is to build a system so elegant that managing relationships feels effortless.
+
+---
+
+## Core Philosophy
+
+### 1. Simplicity is the Ultimate Sophistication
+
+No feature bloat. No enterprise complexity. A lead has:
+- **Identity**: Name and their digital presence across platforms
+- **Ownership**: One team member responsible
+- **Context**: Notes that tell their story
+- **Position**: Where they stand in the pipeline
+
+That's it. Resist the temptation to add more.
+
+### 2. The Pipeline is Sacred
+
+Every lead moves through stages:
+1. **New** — Fresh lead, untouched
+2. **Contacted** — First outreach made
+3. **Engaged** — Active conversation happening
+4. **Qualified** — Confirmed fit and interest
+5. **Proposal** — Offer presented
+6. **Negotiation** — Working out details
+7. **Won** — Successfully converted
+8. **Lost** — Did not convert (but learned something)
+
+Movement through the pipeline should feel like a natural progression, not a chore.
+
+### 3. Every Interaction Tells a Story
+
+Notes aren't just text — they're the memory of the relationship. When a team member picks up a lead, they should understand its entire history in seconds.
+
+---
+
+## Technical Directives
+
+### Stack
+- **Runtime**: Node.js 20+ with TypeScript (strict mode)
+- **Framework**: Next.js 14+ (App Router)
+- **Database**: SQLite with Prisma ORM
+- **UI**: Tailwind CSS + shadcn/ui components
+- **State**: React Server Components + Server Actions
+
+### Architecture Principles
+
+**Data First**: Design the schema before touching UI. The data model is the truth.
+
+**Type Everything**: No `any`. No `unknown` escapes. If TypeScript can catch it, it should.
+
+**Server by Default**: Use React Server Components. Only reach for client components when interactivity demands it.
+
+**Atomic Operations**: Every database operation should be atomic. No partial states.
+
+---
 
 ## Key Principles
 - ONE task per loop - focus on the most important thing
@@ -19,12 +69,11 @@ You are Ralph, an autonomous AI development agent working on a [YOUR PROJECT NAM
 - Update @fix_plan.md with your learnings
 - Commit working changes with descriptive messages
 
-## 🧪 Testing Guidelines (CRITICAL)
+## Testing Guidelines
 - LIMIT testing to ~20% of your total effort per loop
 - PRIORITIZE: Implementation > Documentation > Tests
 - Only write tests for NEW functionality you implement
 - Do NOT refactor existing tests unless broken
-- Do NOT add "additional test coverage" as busy work
 - Focus on CORE functionality first, comprehensive testing later
 
 ## Execution Guidelines

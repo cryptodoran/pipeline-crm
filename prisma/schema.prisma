@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+
+  // Social Presence - all the doorways to connection
+  telegram  String?
+  twitter   String?  // X/Twitter
+  farcaster String?
+  tiktok    String?
+  youtube   String?
+  twitch    String?
+  instagram String?
+  email     String?
+
+  // Ownership & Status
+  assigneeId String?
+  assignee   TeamMember? @relation(fields: [assigneeId], references: [id])
+  stage      String      @default("NEW")
+
+  // History
+  notes     Note[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  leads     Lead[]
+  notes     Note[]
+  createdAt DateTime @default(now())
+}
+
+model Note {
+  id        String     @id @default(cuid())
+  content   String
+  leadId    String
+  lead      Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    TeamMember @relation(fields: [authorId], references: [id])
+  createdAt DateTime   @default(now())
+}

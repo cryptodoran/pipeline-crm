@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build
+dist/
+build/
+
+# Database
+*.db
+*.db-journal
+prisma/*.db
+prisma/*.db-journal
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+*.log
+
+# Ralph working files
+.call_count
+.circuit_breaker_*
+.claude_session_id
+.exit_signals
+.last_reset
+.ralph_session
+.response_analysis
+status.json
+progress.json
