@@ -26,6 +26,9 @@ model Lead {
   assignee   TeamMember? @relation(fields: [assigneeId], references: [id])
   stage      String      @default("NEW")
 
+  // Tags
+  tags      Tag[]       @relation("LeadTags")
+
   // History
   notes     Note[]
   createdAt DateTime @default(now())
@@ -49,4 +52,13 @@ model Note {
   authorId  String
   author    TeamMember @relation(fields: [authorId], references: [id])
   createdAt DateTime   @default(now())
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#6366f1") // Default indigo color
+  leads     Lead[]   @relation("LeadTags")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

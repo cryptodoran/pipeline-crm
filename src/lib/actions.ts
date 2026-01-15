@@ -92,6 +92,7 @@ export async function getLeads() {
   return prisma.lead.findMany({
     include: {
       assignee: true,
+      tags: true,
       notes: {
         include: { author: true },
         orderBy: { createdAt: 'desc' },
@@ -106,6 +107,7 @@ export async function getLead(id: string) {
     where: { id },
     include: {
       assignee: true,
+      tags: true,
       notes: {
         include: { author: true },
         orderBy: { createdAt: 'desc' },
@@ -161,6 +163,93 @@ export async function getTeamMember(id: string) {
       leads: {
         include: { notes: true },
         orderBy: { updatedAt: 'desc' },
+      },
+    },
+  })
+}
+
+// ============================================================================
+// TAG ACTIONS
+// ============================================================================
+
+export async function getTags() {
+  return prisma.tag.findMany({
+    include: {
+      _count: {
+        select: { leads: true },
+      },
+    },
+    orderBy: { name: 'asc' },
+  })
+}
+
+export async function createTag(data: { name: string; color?: string }) {
+  const tag = await prisma.tag.create({
+    data: {
+      name: data.name,
+      color: data.color || '#6366f1',
+    },
+  })
+  revalidatePath('/')
+  revalidatePath('/tags')
+  return tag
+}
+
+export async function updateTag(id: string, data: { name?: string; color?: string }) {
+  const tag = await prisma.tag.update({
+    where: { id },
+    data,
+  })
+  revalidatePath('/')
+  revalidatePath('/tags')
+  return tag
+}
+
+export async function deleteTag(id: string) {
+  await prisma.tag.delete({
+    where: { id },
+  })
+  revalidatePath('/')
+  revalidatePath('/tags')
+}
+
+export async function addTagToLead(leadId: string, tagId: string) {
+  const lead = await prisma.lead.update({
+    where: { id: leadId },
+    data: {
+      tags: {
+        connect: { id: tagId },
+      },
+    },
+    include: { tags: true },
+  })
+  revalidatePath('/')
+  return lead
+}
+
+export async function removeTagFromLead(leadId: string, tagId: string) {
+  const lead = await prisma.lead.update({
+    where: { id: leadId },
+    data: {
+      tags: {
+        disconnect: { id: tagId },
+      },
+    },
+    include: { tags: true },
+  })
+  revalidatePath('/')
+  return lead
+}
+
+export async function getLeadWithTags(id: string) {
+  return prisma.lead.findUnique({
+    where: { id },
+    include: {
+      assignee: true,
+      tags: true,
+      notes: {
+        include: { author: true },
+        orderBy: { createdAt: 'desc' },
       },
     },
   })

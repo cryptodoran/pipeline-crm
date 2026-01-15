@@ -4,6 +4,7 @@ import { useDraggable } from '@dnd-kit/core'
 import { useState } from 'react'
 import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
 import { LeadDetailModal } from './lead-detail-modal'
+import { TagPills } from './tag-input'
 import {
   MessageCircle,
   Twitter,
@@ -15,6 +16,12 @@ import {
   Mail,
   User,
 } from 'lucide-react'
+
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
 
 type Lead = {
   id: string
@@ -29,6 +36,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
+  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
@@ -116,6 +124,13 @@ export function LeadCard({ lead, teamMembers, isDragging }: LeadCardProps) {
             )
           })}
         </div>
+
+        {/* Tags */}
+        {lead.tags && lead.tags.length > 0 && (
+          <div className="mb-2">
+            <TagPills tags={lead.tags} />
+          </div>
+        )}
 
         {/* Assignee and notes count */}
         <div className="flex justify-between items-center text-xs text-gray-500">

@@ -18,6 +18,12 @@ import { LeadCard } from './lead-card'
 import { SearchInput } from './search-input'
 import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
 
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
 type Lead = {
   id: string
   name: string
@@ -31,6 +37,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
+  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
