@@ -203,6 +203,75 @@
 - [ ] Ensure touch-friendly tap targets (min 44px)
 - [ ] Test on iOS and Android browsers
 
+## Phase 20: Custom Pipeline Stages (Priority: P2)
+
+- [ ] Create PipelineStage model in Prisma schema
+- [ ] Build Pipeline settings page
+- [ ] Allow renaming any stage
+- [ ] Add custom color picker per stage
+- [ ] Update Kanban to use custom stage names
+- [ ] Prevent deleting stages with leads
+- [ ] Add stage reordering via drag-drop
+
+## Phase 21: Quick Actions (Priority: P2)
+
+- [ ] Create QuickAction model in Prisma schema
+- [ ] Add quick action buttons to lead cards
+- [ ] Default actions: "Left VM", "No Answer", "Sent Email", "Meeting Scheduled"
+- [ ] Build quick actions settings page
+- [ ] Allow creating custom quick actions
+- [ ] One-click adds timestamped note to lead
+
+## Phase 22: Lead Archiving (Priority: P3)
+
+- [ ] Add archived boolean field to Lead model
+- [ ] Add "Archive" button to lead detail
+- [ ] Hide archived leads from main Kanban
+- [ ] Build "Archived Leads" page
+- [ ] Implement unarchive action
+- [ ] Add bulk archive action
+- [ ] Auto-archive leads in Lost after 90 days (configurable)
+
+## Phase 23: Lead Scoring (Priority: P2)
+
+- [ ] Design scoring algorithm (social handles, notes, stage, reminders)
+- [ ] Add computed score field or calculate on fetch
+- [ ] Show score on lead cards (number or stars)
+- [ ] Add fire/hot icon for high scores
+- [ ] Sort leads by score option
+- [ ] Score breakdown tooltip on hover
+- [ ] Build scoring rules settings page
+
+## Phase 24: Email Templates (Priority: P3)
+
+- [ ] Create Template model in Prisma schema
+- [ ] Build Templates management page
+- [ ] Create, edit, delete templates
+- [ ] Support template variables ({{name}}, {{company}}, etc.)
+- [ ] Add "Use Template" button in lead detail
+- [ ] Copy rendered template to clipboard
+- [ ] Template categories/folders
+
+## Phase 25: REST API (Priority: P3)
+
+- [ ] Create /api/leads route (GET, POST)
+- [ ] Create /api/leads/[id] route (GET, PUT, DELETE)
+- [ ] Create /api/team route (GET)
+- [ ] Implement API key authentication
+- [ ] Add rate limiting (100 req/min)
+- [ ] Build API documentation page
+- [ ] Add webhook support for lead events (create, update, stage_change)
+
+## Phase 26: Team Roles & Permissions (Priority: P2)
+
+- [ ] Add role field to TeamMember model (ADMIN, MEMBER)
+- [ ] Update seed to create admin user
+- [ ] Hide delete buttons for non-admins
+- [ ] Hide settings pages for non-admins
+- [ ] Add role badge to team members list
+- [ ] Require at least one admin (prevent demoting last admin)
+- [ ] Build team invite flow with role selection
+
 ## Completed
 
 - [x] Project initialization

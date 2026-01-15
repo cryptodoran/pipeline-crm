@@ -847,6 +847,176 @@ And I can review and merge them
 
 ---
 
+## Epic 19: Custom Pipeline Stages
+
+### Story 19.1: Renaming Pipeline Stages
+
+**As** a team lead with our own sales process,
+**I want** to rename pipeline stages to match our terminology,
+**So that** the CRM fits how we actually work.
+
+**Scenario:**
+```
+Given I go to Settings > Pipeline
+When I rename "Contacted" to "First Touch"
+And I rename "Qualified" to "Discovery Call"
+Then all leads and filters show the new names
+```
+
+**Acceptance Criteria:**
+- [ ] Pipeline settings page
+- [ ] Rename any stage
+- [ ] Custom colors per stage
+- [ ] Changes reflect everywhere immediately
+- [ ] Cannot delete stages with leads (must move first)
+
+---
+
+## Epic 20: Quick Actions
+
+### Story 20.1: One-Click Quick Notes
+
+**As** a team member in rapid-fire outreach mode,
+**I want** quick note buttons like "Left VM", "No Answer", "Sent Email",
+**So that** I can log activity without typing.
+
+**Scenario:**
+```
+Given I'm on a lead card
+When I click the quick action "Left VM"
+Then a note is added: "Left voicemail" with timestamp
+And I can configure my own quick actions
+```
+
+**Acceptance Criteria:**
+- [ ] Quick action buttons on lead cards
+- [ ] Default actions: "Left VM", "No Answer", "Sent Email", "Meeting Scheduled"
+- [ ] Custom quick actions in settings
+- [ ] One click adds timestamped note
+
+---
+
+## Epic 21: Lead Archiving
+
+### Story 21.1: Archiving Old Leads
+
+**As** a team lead cleaning up the pipeline,
+**I want** to archive leads instead of deleting them,
+**So that** I can reference them later if needed.
+
+**Scenario:**
+```
+Given a lead has been in "Lost" for 6 months
+When I click "Archive"
+Then the lead moves to an archived state
+And it no longer appears in the main Kanban
+And I can find it in "Archived Leads" view
+```
+
+**Acceptance Criteria:**
+- [ ] Archive action on lead detail
+- [ ] Archived leads hidden from main Kanban
+- [ ] "Archived Leads" view/page
+- [ ] Unarchive action to bring lead back
+- [ ] Bulk archive action
+
+---
+
+## Epic 22: Lead Scoring
+
+### Story 22.1: Automatic Lead Scoring
+
+**As** a team lead prioritizing outreach,
+**I want** leads to have a score based on engagement,
+**So that** we focus on the hottest leads first.
+
+**Scenario:**
+```
+Given a lead has:
+  - All social handles filled (+10)
+  - 5+ notes (+15)
+  - Moved past Qualified (+20)
+  - Has reminder set (+5)
+Then their score is 50
+And high-scoring leads have a fire icon
+```
+
+**Acceptance Criteria:**
+- [ ] Score calculation algorithm
+- [ ] Score displayed on lead cards
+- [ ] Sort by score option
+- [ ] Score breakdown on hover
+- [ ] Configurable scoring rules
+
+---
+
+## Epic 23: Email Templates
+
+### Story 23.1: Saving Outreach Templates
+
+**As** a team member doing repetitive outreach,
+**I want** to save email templates,
+**So that** I can quickly copy them for personalization.
+
+**Scenario:**
+```
+Given I go to Templates
+When I create a template called "Conference Follow-up"
+With body: "Great meeting you at {{event}}! I'd love to..."
+Then I can use this template from any lead's detail page
+```
+
+**Acceptance Criteria:**
+- [ ] Templates management page
+- [ ] Create, edit, delete templates
+- [ ] Template variables ({{name}}, {{company}})
+- [ ] Copy template to clipboard from lead detail
+- [ ] Template categories
+
+---
+
+## Epic 24: REST API
+
+### Story 24.1: Programmatic Lead Creation
+
+**As** a developer integrating with other tools,
+**I want** a REST API to create and update leads,
+**So that** I can build automations and integrations.
+
+**Scenario:**
+```
+Given I have an API key
+When I POST to /api/leads with lead data
+Then a new lead is created
+And I receive the lead ID in response
+```
+
+**Acceptance Criteria:**
+- [ ] API routes for leads CRUD
+- [ ] API key authentication
+- [ ] Rate limiting (100 req/min)
+- [ ] API documentation page
+- [ ] Webhook support for lead events
+
+---
+
+## Epic 25: Team Roles & Permissions
+
+### Story 25.1: Admin vs Member Roles
+
+**As** a team lead,
+**I want** to control who can delete leads and manage settings,
+**So that** regular members can't accidentally break things.
+
+**Acceptance Criteria:**
+- [ ] Role field on TeamMember (admin, member)
+- [ ] Admins can: delete leads, manage settings, manage team
+- [ ] Members can: create, edit, assign, add notes
+- [ ] Role-based UI (hide admin actions for members)
+- [ ] At least one admin required
+
+---
+
 ## Story Map Summary
 
 | Epic | Priority | User Value |
@@ -869,6 +1039,13 @@ And I can review and merge them
 | **Keyboard Shortcuts** | **P3** | **Power user speed** |
 | **Duplicate Detection** | **P2** | **Clean data** |
 | **Mobile PWA** | **P2** | **Access anywhere** |
+| **Custom Pipeline Stages** | **P2** | **Fit your process** |
+| **Quick Actions** | **P2** | **Log activity fast** |
+| **Lead Archiving** | **P3** | **Clean pipeline, keep history** |
+| **Lead Scoring** | **P2** | **Focus on hot leads** |
+| **Email Templates** | **P3** | **Faster outreach** |
+| **REST API** | **P3** | **Build integrations** |
+| **Team Roles** | **P2** | **Control access** |
 
 ---
 
