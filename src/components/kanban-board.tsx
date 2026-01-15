@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   DndContext,
   DragEndEvent,
@@ -15,6 +15,7 @@ import { PipelineStage } from '@/lib/types'
 import { updateLeadStage } from '@/lib/actions'
 import { PipelineColumn } from './pipeline-column'
 import { LeadCard } from './lead-card'
+import { SearchInput } from './search-input'
 
 type Lead = {
   id: string
@@ -60,6 +61,7 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [localLeadsByStage, setLocalLeadsByStage] = useState(leadsByStage)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -68,6 +70,33 @@ export function KanbanBoard({
       },
     })
   )
+
+  // Filter leads by search query (case-insensitive)
+  const filteredLeadsByStage = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return localLeadsByStage
+    }
+
+    const query = searchQuery.toLowerCase().trim()
+    const filtered = {} as Record<PipelineStage, Lead[]>
+
+    for (const stage of stages) {
+      filtered[stage] = localLeadsByStage[stage].filter(lead =>
+        lead.name.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }, [localLeadsByStage, searchQuery, stages])
+
+  // Check if search has any results
+  const hasResults = useMemo(() => {
+    return Object.values(filteredLeadsByStage).some(leads => leads.length > 0)
+  }, [filteredLeadsByStage])
+
+  const totalFilteredLeads = useMemo(() => {
+    return Object.values(filteredLeadsByStage).reduce((sum, leads) => sum + leads.length, 0)
+  }, [filteredLeadsByStage])
 
   const activeLead = activeId
     ? Object.values(localLeadsByStage).flat().find(lead => lead.id === activeId)
@@ -123,18 +152,38 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {stages.map(stage => (
-          <PipelineColumn
-            key={stage}
-            stage={stage}
-            label={stageLabels[stage]}
-            color={stageColors[stage]}
-            leads={localLeadsByStage[stage]}
-            teamMembers={teamMembers}
-          />
-        ))}
+      <div className="mb-4 flex items-center gap-4">
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search leads by name..."
+        />
+        {searchQuery && (
+          <span className="text-sm text-gray-500">
+            {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
+          </span>
+        )}
       </div>
+
+      {searchQuery && !hasResults ? (
+        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+          <p className="text-lg font-medium">No results found</p>
+          <p className="text-sm">No leads match &quot;{searchQuery}&quot;</p>
+        </div>
+      ) : (
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {stages.map(stage => (
+            <PipelineColumn
+              key={stage}
+              stage={stage}
+              label={stageLabels[stage]}
+              color={stageColors[stage]}
+              leads={filteredLeadsByStage[stage]}
+              teamMembers={teamMembers}
+            />
+          ))}
+        </div>
+      )}
 
       <DragOverlay>
         {activeLead ? (
