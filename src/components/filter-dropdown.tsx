@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Filter, X, ChevronDown } from 'lucide-react'
+import { Filter, X, ChevronDown, Tag as TagIcon } from 'lucide-react'
 
 export type PlatformFilter =
   | 'telegram'
@@ -29,12 +29,27 @@ const FILTER_OPTIONS: FilterOption[] = [
   { value: 'email', label: 'Has Email' },
 ]
 
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
 interface FilterDropdownProps {
   selectedFilters: PlatformFilter[]
   onChange: (filters: PlatformFilter[]) => void
+  availableTags?: Tag[]
+  selectedTagIds?: string[]
+  onTagsChange?: (tagIds: string[]) => void
 }
 
-export function FilterDropdown({ selectedFilters, onChange }: FilterDropdownProps) {
+export function FilterDropdown({
+  selectedFilters,
+  onChange,
+  availableTags = [],
+  selectedTagIds = [],
+  onTagsChange,
+}: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -57,37 +72,83 @@ export function FilterDropdown({ selectedFilters, onChange }: FilterDropdownProp
     }
   }
 
+  const toggleTag = (tagId: string) => {
+    if (!onTagsChange) return
+    if (selectedTagIds.includes(tagId)) {
+      onTagsChange(selectedTagIds.filter(id => id !== tagId))
+    } else {
+      onTagsChange([...selectedTagIds, tagId])
+    }
+  }
+
   const clearAll = () => {
     onChange([])
+    onTagsChange?.([])
     setIsOpen(false)
   }
+
+  const totalFilters = selectedFilters.length + selectedTagIds.length
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
-          selectedFilters.length > 0
+          totalFilters > 0
             ? 'border-blue-500 bg-blue-50 text-blue-700'
             : 'border-gray-300 hover:bg-gray-50 text-gray-700'
         }`}
       >
         <Filter className="h-4 w-4" />
         <span>Filter</span>
-        {selectedFilters.length > 0 && (
+        {totalFilters > 0 && (
           <span className="bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
-            {selectedFilters.length}
+            {totalFilters}
           </span>
         )}
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
           <div className="p-2">
+            {/* Tags Section */}
+            {availableTags.length > 0 && (
+              <>
+                <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 uppercase tracking-wide">
+                  <span className="flex items-center gap-1">
+                    <TagIcon className="h-3 w-3" />
+                    Tags
+                  </span>
+                </div>
+                <div className="mt-1 space-y-0.5 mb-3">
+                  {availableTags.map(tag => (
+                    <label
+                      key={tag.id}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTagIds.includes(tag.id)}
+                        onChange={() => toggleTag(tag.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                      />
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: tag.color }}
+                      />
+                      <span className="text-sm text-gray-700 truncate">{tag.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="border-t border-gray-100 my-2" />
+              </>
+            )}
+
+            {/* Platforms Section */}
             <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 uppercase tracking-wide">
               <span>Platforms</span>
-              {selectedFilters.length > 0 && (
+              {totalFilters > 0 && (
                 <button
                   onClick={clearAll}
                   className="text-blue-500 hover:text-blue-700 normal-case"
@@ -123,17 +184,56 @@ interface FilterBadgesProps {
   selectedFilters: PlatformFilter[]
   onRemove: (filter: PlatformFilter) => void
   onClearAll: () => void
+  availableTags?: Tag[]
+  selectedTagIds?: string[]
+  onRemoveTag?: (tagId: string) => void
 }
 
-export function FilterBadges({ selectedFilters, onRemove, onClearAll }: FilterBadgesProps) {
-  if (selectedFilters.length === 0) return null
+export function FilterBadges({
+  selectedFilters,
+  onRemove,
+  onClearAll,
+  availableTags = [],
+  selectedTagIds = [],
+  onRemoveTag,
+}: FilterBadgesProps) {
+  const totalFilters = selectedFilters.length + selectedTagIds.length
+  if (totalFilters === 0) return null
 
   const getLabel = (filter: PlatformFilter) => {
     return FILTER_OPTIONS.find(o => o.value === filter)?.label || filter
   }
 
+  const getTag = (tagId: string) => {
+    return availableTags.find(t => t.id === tagId)
+  }
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
+      {/* Tag badges */}
+      {selectedTagIds.map(tagId => {
+        const tag = getTag(tagId)
+        if (!tag) return null
+        return (
+          <span
+            key={tagId}
+            className="inline-flex items-center gap-1 px-2 py-1 text-sm rounded-full"
+            style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
+          >
+            {tag.name}
+            {onRemoveTag && (
+              <button
+                onClick={() => onRemoveTag(tagId)}
+                className="hover:bg-black/10 rounded-full p-0.5"
+                aria-label={`Remove ${tag.name} filter`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </span>
+        )
+      })}
+      {/* Platform badges */}
       {selectedFilters.map(filter => (
         <span
           key={filter}
@@ -149,7 +249,7 @@ export function FilterBadges({ selectedFilters, onRemove, onClearAll }: FilterBa
           </button>
         </span>
       ))}
-      {selectedFilters.length > 1 && (
+      {totalFilters > 1 && (
         <button
           onClick={onClearAll}
           className="text-sm text-gray-500 hover:text-gray-700 underline"

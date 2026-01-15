@@ -22,6 +22,7 @@ type Tag = {
   id: string
   name: string
   color: string
+  _count?: { leads: number }
 }
 
 type Lead = {
@@ -55,6 +56,7 @@ type TeamMember = {
 interface KanbanBoardProps {
   leadsByStage: Record<PipelineStage, Lead[]>
   teamMembers: TeamMember[]
+  availableTags?: Tag[]
   stages: readonly PipelineStage[]
   stageLabels: Record<PipelineStage, string>
   stageColors: Record<PipelineStage, string>
@@ -63,6 +65,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({
   leadsByStage,
   teamMembers,
+  availableTags = [],
   stages,
   stageLabels,
   stageColors,
@@ -71,6 +74,7 @@ export function KanbanBoard({
   const [localLeadsByStage, setLocalLeadsByStage] = useState(leadsByStage)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState<PlatformFilter[]>([])
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -80,7 +84,7 @@ export function KanbanBoard({
     })
   )
 
-  // Filter leads by search query and platform filters
+  // Filter leads by search query, platform filters, and tags
   const filteredLeadsByStage = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
     const filtered = {} as Record<PipelineStage, Lead[]>
@@ -101,12 +105,22 @@ export function KanbanBoard({
           }
         }
 
+        // Tag filters (AND logic - lead must have all selected tags)
+        if (selectedTagIds.length > 0) {
+          const leadTagIds = lead.tags?.map(t => t.id) || []
+          for (const tagId of selectedTagIds) {
+            if (!leadTagIds.includes(tagId)) {
+              return false
+            }
+          }
+        }
+
         return true
       })
     }
 
     return filtered
-  }, [localLeadsByStage, searchQuery, selectedFilters, stages])
+  }, [localLeadsByStage, searchQuery, selectedFilters, selectedTagIds, stages])
 
   // Check if search has any results
   const hasResults = useMemo(() => {
@@ -120,6 +134,8 @@ export function KanbanBoard({
   const activeLead = activeId
     ? Object.values(localLeadsByStage).flat().find(lead => lead.id === activeId)
     : null
+
+  const hasActiveFilters = searchQuery || selectedFilters.length > 0 || selectedTagIds.length > 0
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string)
@@ -164,6 +180,11 @@ export function KanbanBoard({
     }
   }
 
+  const handleClearAllFilters = () => {
+    setSelectedFilters([])
+    setSelectedTagIds([])
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -181,8 +202,11 @@ export function KanbanBoard({
           <FilterDropdown
             selectedFilters={selectedFilters}
             onChange={setSelectedFilters}
+            availableTags={availableTags}
+            selectedTagIds={selectedTagIds}
+            onTagsChange={setSelectedTagIds}
           />
-          {(searchQuery || selectedFilters.length > 0) && (
+          {hasActiveFilters && (
             <span className="text-sm text-gray-500">
               {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
             </span>
@@ -191,15 +215,18 @@ export function KanbanBoard({
         <FilterBadges
           selectedFilters={selectedFilters}
           onRemove={(filter) => setSelectedFilters(selectedFilters.filter(f => f !== filter))}
-          onClearAll={() => setSelectedFilters([])}
+          onClearAll={handleClearAllFilters}
+          availableTags={availableTags}
+          selectedTagIds={selectedTagIds}
+          onRemoveTag={(tagId) => setSelectedTagIds(selectedTagIds.filter(id => id !== tagId))}
         />
       </div>
 
-      {(searchQuery || selectedFilters.length > 0) && !hasResults ? (
+      {hasActiveFilters && !hasResults ? (
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <p className="text-lg font-medium">No results found</p>
           <p className="text-sm">
-            {searchQuery && selectedFilters.length > 0
+            {searchQuery && (selectedFilters.length > 0 || selectedTagIds.length > 0)
               ? `No leads match "${searchQuery}" with the selected filters`
               : searchQuery
               ? `No leads match "${searchQuery}"`
@@ -216,6 +243,7 @@ export function KanbanBoard({
               color={stageColors[stage]}
               leads={filteredLeadsByStage[stage]}
               teamMembers={teamMembers}
+              availableTags={availableTags}
             />
           ))}
         </div>
@@ -223,7 +251,7 @@ export function KanbanBoard({
 
       <DragOverlay>
         {activeLead ? (
-          <LeadCard lead={activeLead} teamMembers={teamMembers} isDragging />
+          <LeadCard lead={activeLead} teamMembers={teamMembers} availableTags={availableTags} isDragging />
         ) : null}
       </DragOverlay>
     </DndContext>

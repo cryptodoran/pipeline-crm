@@ -1,5 +1,20 @@
 # Pipeline CRM - Fix Plan
 
+## Phase 0: Critical Fixes & Deployment (Priority: P0) ⚠️ DO THIS FIRST
+
+- [x] Verify DATABASE_URL is set in .env file
+- [x] Run `npm run build` and fix any TypeScript errors
+- [x] Run `npx prisma generate` to regenerate client
+- [x] Create tag server actions (getTags, createTag, updateTag, deleteTag)
+- [x] Create tag input component with autocomplete
+- [x] Add tags display to lead cards
+- [x] Add tag filter to Kanban toolbar
+- [x] Build /tags management page
+- [x] Test build passes: `npm run build`
+- [x] Commit and push to GitHub
+- [ ] Verify Vercel deployment succeeds
+- [ ] Test live site: https://pipeline-crm-rho.vercel.app
+
 ## Phase 1: Foundation (Critical Path)
 
 - [ ] Initialize Next.js 14 project with TypeScript strict mode
@@ -126,18 +141,18 @@
 - [ ] Show breakdown by stage
 - [ ] Show breakdown by team member
 
-## Phase 13: Tags & Categories (Priority: P1)
+## Phase 13: Tags & Categories (Priority: P1) - COMPLETE!
 
-- [ ] Create Tag model in Prisma schema (many-to-many with Lead)
-- [ ] Add tag input with autocomplete to lead detail
-- [ ] Allow creating new tags on the fly
-- [ ] Show tags as colored pills on lead cards
-- [ ] Support multiple tags per lead
-- [ ] Add tag filter to Kanban board
-- [ ] Build tags management page
-- [ ] Implement rename tag (updates all leads)
-- [ ] Implement delete tag (removes from all leads)
-- [ ] Show lead count per tag
+- [x] Create Tag model in Prisma schema (many-to-many with Lead)
+- [x] Add tag input with autocomplete to lead detail
+- [x] Allow creating new tags on the fly
+- [x] Show tags as colored pills on lead cards
+- [x] Support multiple tags per lead
+- [x] Add tag filter to Kanban board
+- [x] Build tags management page
+- [x] Implement rename tag (updates all leads)
+- [x] Implement delete tag (removes from all leads)
+- [x] Show lead count per tag
 
 ## Phase 14: Reminders & Follow-ups (Priority: P1)
 
@@ -272,6 +287,211 @@
 - [ ] Require at least one admin (prevent demoting last admin)
 - [ ] Build team invite flow with role selection
 
+## Phase 27: Lead Engagement Analytics (Priority: P3)
+
+- [ ] Calculate time between stage transitions
+- [ ] Build average response time metric display
+- [ ] Per-team-member response time breakdown
+- [ ] Historical trend chart (30 days)
+- [ ] Pipeline velocity report (avg days per stage)
+- [ ] Funnel visualization component
+- [ ] Stage-by-stage breakdown table
+- [ ] Period comparison (vs previous month)
+- [ ] Identify and highlight stuck leads
+- [ ] Export analytics data to CSV
+
+## Phase 28: Smart Lead Assignment (Priority: P2)
+
+- [ ] Add auto-assignment settings to admin
+- [ ] Implement round-robin assignment algorithm
+- [ ] Track team member availability status
+- [ ] Skip unavailable members in rotation
+- [ ] Send assignment notifications
+- [ ] Count active leads per team member
+- [ ] Add maximum lead setting per member
+- [ ] Implement workload-based assignment option
+- [ ] Visual workload indicator on team page
+- [ ] Re-balance existing leads feature
+
+## Phase 29: Lead Communication Log (Priority: P2)
+
+- [ ] Create Communication model in Prisma schema
+- [ ] Build "Log Communication" modal
+- [ ] Communication type selection (Email, Call, Meeting, Message)
+- [ ] Date/time picker with default to now
+- [ ] Outcome selection (Positive, Neutral, Negative)
+- [ ] Display communications in lead timeline
+- [ ] Filter timeline by communication type
+- [ ] Communication count on lead cards
+
+## Phase 30: Custom Fields (Priority: P3)
+
+- [ ] Create CustomField model in Prisma schema
+- [ ] Create CustomFieldValue model for lead values
+- [ ] Admin UI for managing custom fields
+- [ ] Support field types: Text, Number, Select, Date, Checkbox
+- [ ] Required/optional field setting
+- [ ] Default value configuration
+- [ ] Render custom fields on lead form
+- [ ] Render custom fields on lead detail
+- [ ] Search and filter by custom fields
+- [ ] Conditional field display rules
+
+## Phase 31: Lead Nurturing Sequences (Priority: P3)
+
+- [ ] Create Sequence model in Prisma schema
+- [ ] Create SequenceStep model
+- [ ] Create LeadSequenceEnrollment model
+- [ ] Build sequence builder UI
+- [ ] Define steps with delays (days)
+- [ ] Enroll/unenroll leads from sequences
+- [ ] Auto-create reminders from sequence steps
+- [ ] Pause/resume sequence for lead
+- [ ] Auto-exit sequence on stage change
+- [ ] Sequence analytics dashboard
+
+## Phase 32: Lead Merge & Deduplication (Priority: P2)
+
+- [ ] Build duplicate detection algorithm (fuzzy name, exact email)
+- [ ] Real-time duplicate check on lead create
+- [ ] Warning modal with potential matches
+- [ ] Confidence score for matches
+- [ ] Side-by-side merge comparison view
+- [ ] Select winning value per field
+- [ ] Merge notes chronologically
+- [ ] Merge tags
+- [ ] Delete duplicate after merge
+- [ ] Bulk duplicate scan for existing leads
+
+## Phase 33: Audit Trail & History (Priority: P3)
+
+- [ ] Create AuditLog model in Prisma schema
+- [ ] Log all lead field changes
+- [ ] Record user and timestamp for changes
+- [ ] Store before/after values
+- [ ] Build lead history view
+- [ ] Filter history by field or user
+- [ ] System-wide audit log page (admin)
+- [ ] Filter by action type
+- [ ] Date range filter
+- [ ] Export audit data
+
+## Phase 34: Data Backup & Recovery (Priority: P3)
+
+- [ ] Build full data export (JSON format)
+- [ ] Include all models in export
+- [ ] Preserve relationships in export
+- [ ] Downloadable backup file
+- [ ] Upload backup file UI
+- [ ] Validate backup integrity
+- [ ] Preview changes before restore
+- [ ] Full replace restore option
+- [ ] Merge restore option
+- [ ] Rollback on restore failure
+
+## Phase 35: Lead Scoring Rules Engine (Priority: P2)
+
+- [ ] Create ScoringRule model in Prisma schema
+- [ ] Admin UI for scoring rules management
+- [ ] Rule conditions (field equals, contains, exists)
+- [ ] Point values per rule (+/-)
+- [ ] Calculate lead score on create/update
+- [ ] Store score on Lead model
+- [ ] Score badge on lead cards
+- [ ] "Hot lead" indicator for high scores
+- [ ] Sort by score option
+- [ ] Filter by score range
+
+## Phase 36: Email Integration (Priority: P3)
+
+- [ ] Gmail OAuth setup
+- [ ] Match emails by lead email address
+- [ ] Log incoming/outgoing emails
+- [ ] Show emails in lead timeline
+- [ ] Link to view full email in Gmail
+- [ ] Email compose modal
+- [ ] Rich text editor for emails
+- [ ] Template insertion in compose
+- [ ] Send via Gmail API
+- [ ] Auto-log sent emails
+
+## Phase 37: Task Management (Priority: P2)
+
+- [ ] Create Task model in Prisma schema
+- [ ] Task creation form (title, description, due date)
+- [ ] Assign task to team member
+- [ ] Show tasks in lead detail
+- [ ] "My Tasks" page
+- [ ] Mark task complete
+- [ ] Due date reminders
+- [ ] Overdue task highlighting
+- [ ] "Today's Tasks" section
+- [ ] Task priority levels
+
+## Phase 38: Team Collaboration Features (Priority: P2)
+
+- [ ] @mention autocomplete in notes
+- [ ] Notification to mentioned user
+- [ ] Highlight mentions in notes
+- [ ] "Mentions" notification tab
+- [ ] Separate internal comments section
+- [ ] Comments marked as internal
+- [ ] Different visual style for comments
+- [ ] Comment threads/replies
+- [ ] Real-time updates (polling/websocket)
+
+## Phase 39: Reporting Dashboard (Priority: P3)
+
+- [ ] Report builder UI
+- [ ] Filter by any field
+- [ ] Date range selection
+- [ ] Aggregate functions (count, sum, avg)
+- [ ] Save report for reuse
+- [ ] Schedule report delivery
+- [ ] Email delivery of reports
+- [ ] PDF export option
+- [ ] Multiple recipients for scheduled reports
+- [ ] Report templates gallery
+
+## Phase 40: Multi-Pipeline Support (Priority: P3)
+
+- [ ] Create Pipeline model in Prisma schema
+- [ ] Create PipelineStage model
+- [ ] Default pipeline with existing stages
+- [ ] Create new pipeline UI
+- [ ] Custom stages per pipeline
+- [ ] Assign leads to pipeline
+- [ ] Pipeline switcher in header
+- [ ] "All Pipelines" dashboard view
+- [ ] Pipeline-specific reports
+- [ ] Cross-pipeline search
+
+## Phase 41: Mobile PWA Enhancements (Priority: P3)
+
+- [ ] Streamlined mobile add form
+- [ ] Camera integration for photos
+- [ ] Business card OCR parsing
+- [ ] Offline support with sync queue
+- [ ] Quick voice note recording
+- [ ] Push notification setup
+- [ ] Configurable notification types
+- [ ] Quick action buttons in notifications
+- [ ] Notification preferences page
+- [ ] Do not disturb schedule
+
+## Phase 42: Webhooks & External Integrations (Priority: P3)
+
+- [ ] Webhook configuration UI in admin
+- [ ] Event type selection (lead.created, etc.)
+- [ ] Custom payload templates
+- [ ] Webhook delivery history/logs
+- [ ] Retry failed webhooks
+- [ ] Zapier trigger endpoints
+- [ ] Zapier action endpoints
+- [ ] OAuth authentication for integrations
+- [ ] Integration documentation page
+- [ ] Rate limiting for webhooks
+
 ## Completed
 
 - [x] Project initialization
@@ -289,6 +509,7 @@
 - [x] GitHub repo: https://github.com/cryptodoran/pipeline-crm
 - [x] Search input added to Kanban board (name filtering, clear button, no results state)
 - [x] Platform filters added to Kanban board (multi-select, badges, clear all)
+- [x] Tag system fully implemented (Phase 13 complete)
 
 ## Guiding Principles
 
