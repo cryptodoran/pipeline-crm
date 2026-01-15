@@ -16,6 +16,7 @@ import { updateLeadStage } from '@/lib/actions'
 import { PipelineColumn } from './pipeline-column'
 import { LeadCard } from './lead-card'
 import { SearchInput } from './search-input'
+import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
 
 type Lead = {
   id: string
@@ -62,6 +63,7 @@ export function KanbanBoard({
   const [activeId, setActiveId] = useState<string | null>(null)
   const [localLeadsByStage, setLocalLeadsByStage] = useState(leadsByStage)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState<PlatformFilter[]>([])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -71,23 +73,33 @@ export function KanbanBoard({
     })
   )
 
-  // Filter leads by search query (case-insensitive)
+  // Filter leads by search query and platform filters
   const filteredLeadsByStage = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return localLeadsByStage
-    }
-
     const query = searchQuery.toLowerCase().trim()
     const filtered = {} as Record<PipelineStage, Lead[]>
 
     for (const stage of stages) {
-      filtered[stage] = localLeadsByStage[stage].filter(lead =>
-        lead.name.toLowerCase().includes(query)
-      )
+      filtered[stage] = localLeadsByStage[stage].filter(lead => {
+        // Search filter
+        if (query && !lead.name.toLowerCase().includes(query)) {
+          return false
+        }
+
+        // Platform filters (AND logic - lead must have all selected platforms)
+        if (selectedFilters.length > 0) {
+          for (const platform of selectedFilters) {
+            if (!lead[platform]) {
+              return false
+            }
+          }
+        }
+
+        return true
+      })
     }
 
     return filtered
-  }, [localLeadsByStage, searchQuery, stages])
+  }, [localLeadsByStage, searchQuery, selectedFilters, stages])
 
   // Check if search has any results
   const hasResults = useMemo(() => {
@@ -152,23 +164,40 @@ export function KanbanBoard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="mb-4 flex items-center gap-4">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search leads by name..."
+      <div className="mb-4 space-y-3">
+        <div className="flex items-center gap-4">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search leads by name..."
+          />
+          <FilterDropdown
+            selectedFilters={selectedFilters}
+            onChange={setSelectedFilters}
+          />
+          {(searchQuery || selectedFilters.length > 0) && (
+            <span className="text-sm text-gray-500">
+              {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
+            </span>
+          )}
+        </div>
+        <FilterBadges
+          selectedFilters={selectedFilters}
+          onRemove={(filter) => setSelectedFilters(selectedFilters.filter(f => f !== filter))}
+          onClearAll={() => setSelectedFilters([])}
         />
-        {searchQuery && (
-          <span className="text-sm text-gray-500">
-            {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
-          </span>
-        )}
       </div>
 
-      {searchQuery && !hasResults ? (
+      {(searchQuery || selectedFilters.length > 0) && !hasResults ? (
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <p className="text-lg font-medium">No results found</p>
-          <p className="text-sm">No leads match &quot;{searchQuery}&quot;</p>
+          <p className="text-sm">
+            {searchQuery && selectedFilters.length > 0
+              ? `No leads match "${searchQuery}" with the selected filters`
+              : searchQuery
+              ? `No leads match "${searchQuery}"`
+              : 'No leads match the selected filters'}
+          </p>
         </div>
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-4">

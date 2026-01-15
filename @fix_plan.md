@@ -79,15 +79,15 @@
 
 ## Phase 9: Search & Filter (Priority: P1)
 
-- [ ] Add search input to Kanban header/toolbar
-- [ ] Implement real-time search filtering by lead name
-- [ ] Add case-insensitive search
-- [ ] Add clear search button
-- [ ] Show "No results" empty state when search has no matches
-- [ ] Add filter dropdown for social platforms (Has TikTok, Has Twitter, etc.)
-- [ ] Implement multi-select filter with AND logic
-- [ ] Show active filter badges
-- [ ] Add "Clear all filters" button
+- [x] Add search input to Kanban header/toolbar
+- [x] Implement real-time search filtering by lead name
+- [x] Add case-insensitive search
+- [x] Add clear search button
+- [x] Show "No results" empty state when search has no matches
+- [x] Add filter dropdown for social platforms (Has TikTok, Has Twitter, etc.)
+- [x] Implement multi-select filter with AND logic
+- [x] Show active filter badges
+- [x] Add "Clear all filters" button
 
 ## Phase 10: Bulk Actions (Priority: P2)
 
@@ -287,6 +287,8 @@
 - [x] Neon database connected
 - [x] Deployed to Vercel (https://pipeline-crm-rho.vercel.app)
 - [x] GitHub repo: https://github.com/cryptodoran/pipeline-crm
+- [x] Search input added to Kanban board (name filtering, clear button, no results state)
+- [x] Platform filters added to Kanban board (multi-select, badges, clear all)
 
 ## Guiding Principles
 
