@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { MobileNav } from '@/components/mobile-nav'
 import { LogoutButton } from '@/components/logout-button'
+import { UserIdentity } from '@/components/user-identity'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -57,10 +58,14 @@ export default function RootLayout({
                       {link.label}
                     </a>
                   ))}
-                  <LogoutButton />
+                  <div className="border-l border-gray-600 pl-2 ml-1 flex items-center gap-1">
+                    <UserIdentity />
+                    <LogoutButton />
+                  </div>
                 </nav>
                 {/* Mobile Nav */}
                 <div className="md:hidden flex items-center gap-2">
+                  <UserIdentity />
                   <LogoutButton />
                   <MobileNav links={NAV_LINKS} />
                 </div>

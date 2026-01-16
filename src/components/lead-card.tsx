@@ -183,12 +183,12 @@ export function LeadCard({
               </span>
             )}
             <h4 className="font-medium text-gray-900 dark:text-white truncate">{lead.name}</h4>
-            {/* Lead score badge */}
-            {lead.score !== undefined && lead.score > 0 && (
-              <span 
+            {/* Lead score badge - only show if score is actually > 0 */}
+            {Boolean(lead.score && lead.score > 0) && (
+              <span
                 className={`flex-shrink-0 px-1.5 py-0.5 rounded text-xs font-medium ${
-                  lead.score >= 70 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                  lead.score >= 40 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                  (lead.score || 0) >= 70 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                  (lead.score || 0) >= 40 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
                   'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                 }`}
                 title={`Lead score: ${lead.score}`}
