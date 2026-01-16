@@ -166,14 +166,14 @@
 - [x] Implement snooze (1 day, 1 week)
 - [x] Build "Today's Follow-ups" section
 
-## Phase 15: Lead Sources (Priority: P2)
+## Phase 15: Lead Sources (Priority: P2) - COMPLETE!
 
-- [ ] Add source field to Lead model
-- [ ] Create Source model for predefined sources
-- [ ] Add source dropdown to lead creation form
-- [ ] Allow custom source entry
-- [ ] Show source badge on lead cards
-- [ ] Add source filter to Kanban
+- [x] Add source field to Lead model
+- [x] Create Source model for predefined sources
+- [x] Add source dropdown to lead creation form
+- [x] Allow custom source entry
+- [x] Show source badge on lead cards
+- [x] Add source filter to Kanban
 - [ ] Show source breakdown in dashboard
 - [ ] Calculate conversion rate by source
 

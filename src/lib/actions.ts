@@ -3,6 +3,19 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from './db'
 import { PipelineStage } from './types'
+import {
+  createLeadSchema,
+  updateLeadSchema,
+  addNoteSchema,
+  createTeamMemberSchema,
+  createTagSchema,
+  updateTagSchema,
+  createReminderSchema,
+  bulkAssignSchema,
+  bulkMoveSchema,
+  importLeadSchema,
+} from './schemas'
+import { z } from 'zod'
 
 // ============================================================================
 // LEAD ACTIONS
@@ -21,19 +34,22 @@ export async function createLead(data: {
   assigneeId?: string
   source?: string
 }) {
+  // Validate input
+  const validated = createLeadSchema.parse(data)
+  
   const lead = await prisma.lead.create({
     data: {
-      name: data.name,
-      telegram: data.telegram || null,
-      twitter: data.twitter || null,
-      farcaster: data.farcaster || null,
-      tiktok: data.tiktok || null,
-      youtube: data.youtube || null,
-      twitch: data.twitch || null,
-      instagram: data.instagram || null,
-      email: data.email || null,
-      assigneeId: data.assigneeId || null,
-      source: data.source || null,
+      name: validated.name,
+      telegram: validated.telegram || null,
+      twitter: validated.twitter || null,
+      farcaster: validated.farcaster || null,
+      tiktok: validated.tiktok || null,
+      youtube: validated.youtube || null,
+      twitch: validated.twitch || null,
+      instagram: validated.instagram || null,
+      email: validated.email || null,
+      assigneeId: validated.assigneeId || null,
+      source: validated.source || null,
       stage: 'NEW',
     },
   })
@@ -58,9 +74,12 @@ export async function updateLead(
     source?: string | null
   }
 ) {
+  // Validate input
+  const validated = updateLeadSchema.parse(data)
+  
   const lead = await prisma.lead.update({
     where: { id },
-    data,
+    data: validated,
   })
   revalidatePath('/')
   return lead
@@ -131,6 +150,9 @@ export async function getLead(id: string) {
 // ============================================================================
 
 export async function addNote(leadId: string, content: string, authorId: string) {
+  // Validate input
+  addNoteSchema.parse({ leadId, content, authorId })
+  
   const note = await prisma.note.create({
     data: {
       content,
@@ -148,8 +170,11 @@ export async function addNote(leadId: string, content: string, authorId: string)
 // ============================================================================
 
 export async function createTeamMember(data: { name: string; email: string }) {
+  // Validate input
+  const validated = createTeamMemberSchema.parse(data)
+  
   const member = await prisma.teamMember.create({
-    data,
+    data: validated,
   })
   revalidatePath('/team')
   return member
@@ -194,11 +219,14 @@ export async function getTags() {
 }
 
 export async function createTag(data: { name: string; color?: string }) {
+  // Validate input
+  const validated = createTagSchema.parse({
+    name: data.name,
+    color: data.color || '#6366f1',
+  })
+  
   const tag = await prisma.tag.create({
-    data: {
-      name: data.name,
-      color: data.color || '#6366f1',
-    },
+    data: validated,
   })
   revalidatePath('/')
   revalidatePath('/tags')
@@ -206,9 +234,12 @@ export async function createTag(data: { name: string; color?: string }) {
 }
 
 export async function updateTag(id: string, data: { name?: string; color?: string }) {
+  // Validate input
+  const validated = updateTagSchema.parse(data)
+  
   const tag = await prisma.tag.update({
     where: { id },
-    data,
+    data: validated,
   })
   revalidatePath('/')
   revalidatePath('/tags')
