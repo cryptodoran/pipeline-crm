@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   DndContext,
   DragEndEvent,
@@ -17,7 +18,7 @@ import { LeadCard } from './lead-card'
 import { SearchInput } from './search-input'
 import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
 import { BulkActionToolbar } from './bulk-action-toolbar'
-import { CheckSquare, Keyboard } from 'lucide-react'
+import { CheckSquare, Keyboard, RefreshCw } from 'lucide-react'
 
 type Tag = {
   id: string
@@ -39,7 +40,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   source: string | null
-  assignee: { id: string; name: string; email: string } | null
+  assignee: { id: string; name: string; email: string; color?: string } | null
   tags?: Tag[]
   notes: Array<{
     id: string
@@ -64,6 +65,8 @@ interface KanbanBoardProps {
   stageColors: Record<string, string>
 }
 
+const POLL_INTERVAL = 10000 // 10 seconds
+
 export function KanbanBoard({
   leadsByStage,
   teamMembers,
@@ -72,6 +75,7 @@ export function KanbanBoard({
   stageLabels,
   stageColors,
 }: KanbanBoardProps) {
+  const router = useRouter()
   const [activeId, setActiveId] = useState<string | null>(null)
   const [localLeadsByStage, setLocalLeadsByStage] = useState(leadsByStage)
   const [searchQuery, setSearchQuery] = useState('')
@@ -81,7 +85,33 @@ export function KanbanBoard({
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set())
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync local state when props change (from server refresh)
+  useEffect(() => {
+    setLocalLeadsByStage(leadsByStage)
+  }, [leadsByStage])
+
+  // Polling for auto-refresh
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      router.refresh()
+    }, POLL_INTERVAL)
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, router])
+
+  // Manual refresh handler
+  const handleManualRefresh = useCallback(() => {
+    setIsRefreshing(true)
+    router.refresh()
+    // Reset refreshing state after a short delay
+    setTimeout(() => setIsRefreshing(false), 500)
+  }, [router])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -310,6 +340,25 @@ export function KanbanBoard({
             >
               <CheckSquare className="w-4 h-4" />
               <span className="hidden sm:inline">{selectionMode ? 'Exit Select' : 'Select'}</span>
+            </button>
+            <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 transition-colors disabled:opacity-50"
+              title="Refresh (auto-refreshes every 10s)"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={`hidden sm:flex items-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
+                autoRefresh
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+              }`}
+              title={autoRefresh ? 'Auto-refresh ON (click to disable)' : 'Auto-refresh OFF (click to enable)'}
+            >
+              {autoRefresh ? 'Auto' : 'Manual'}
             </button>
           </div>
         </div>
