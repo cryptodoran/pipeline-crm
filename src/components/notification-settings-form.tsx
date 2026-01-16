@@ -16,6 +16,10 @@ interface NotificationSettings {
   slackWebhookUrl: string | null
   slackChannel: string | null
   reminderMinutesBefore: number
+  notify1DayBefore: boolean
+  notify1HourBefore: boolean
+  notify30MinBefore: boolean
+  notify15MinBefore: boolean
 }
 
 interface NotificationSettingsFormProps {
@@ -40,7 +44,10 @@ export function NotificationSettingsForm({ initialSettings, slackWebhookLocked =
           slackEnabled: settings.slackEnabled,
           slackWebhookUrl: settings.slackWebhookUrl,
           slackChannel: settings.slackChannel,
-          reminderMinutesBefore: settings.reminderMinutesBefore,
+          notify1DayBefore: settings.notify1DayBefore,
+          notify1HourBefore: settings.notify1HourBefore,
+          notify30MinBefore: settings.notify30MinBefore,
+          notify15MinBefore: settings.notify15MinBefore,
         })
         toast.success('Settings saved!')
       } catch {
@@ -67,23 +74,57 @@ export function NotificationSettingsForm({ initialSettings, slackWebhookLocked =
 
   return (
     <div className="space-y-6">
-      {/* Timing Setting */}
+      {/* Timing Setting - Multiple checkboxes */}
       <div className="p-4 bg-gray-750 rounded-lg">
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-300 mb-3">
           Notify me before reminder is due
         </label>
-        <select
-          value={settings.reminderMinutesBefore}
-          onChange={(e) => setSettings({ ...settings, reminderMinutesBefore: Number(e.target.value) })}
-          className="w-full md:w-48 px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value={0}>At due time</option>
-          <option value={5}>5 minutes before</option>
-          <option value={15}>15 minutes before</option>
-          <option value={30}>30 minutes before</option>
-          <option value={60}>1 hour before</option>
-          <option value={1440}>1 day before</option>
-        </select>
+        <p className="text-xs text-gray-500 mb-4">
+          Select multiple options to receive multiple notifications for each reminder
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <label className="flex items-center gap-2 p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-650 transition-colors">
+            <input
+              type="checkbox"
+              checked={settings.notify1DayBefore}
+              onChange={(e) => setSettings({ ...settings, notify1DayBefore: e.target.checked })}
+              className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm text-white">1 day before</span>
+          </label>
+          <label className="flex items-center gap-2 p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-650 transition-colors">
+            <input
+              type="checkbox"
+              checked={settings.notify1HourBefore}
+              onChange={(e) => setSettings({ ...settings, notify1HourBefore: e.target.checked })}
+              className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm text-white">1 hour before</span>
+          </label>
+          <label className="flex items-center gap-2 p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-650 transition-colors">
+            <input
+              type="checkbox"
+              checked={settings.notify30MinBefore}
+              onChange={(e) => setSettings({ ...settings, notify30MinBefore: e.target.checked })}
+              className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm text-white">30 min before</span>
+          </label>
+          <label className="flex items-center gap-2 p-3 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-650 transition-colors">
+            <input
+              type="checkbox"
+              checked={settings.notify15MinBefore}
+              onChange={(e) => setSettings({ ...settings, notify15MinBefore: e.target.checked })}
+              className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <span className="text-sm text-white">15 min before</span>
+          </label>
+        </div>
+        {!settings.notify1DayBefore && !settings.notify1HourBefore && !settings.notify30MinBefore && !settings.notify15MinBefore && (
+          <p className="text-xs text-yellow-500 mt-2">
+            Warning: No notification times selected. You won&apos;t receive any reminder notifications.
+          </p>
+        )}
       </div>
 
       {/* Email Settings */}

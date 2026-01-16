@@ -3,6 +3,16 @@
 import { prisma } from './db'
 import { revalidatePath } from 'next/cache'
 
+// Preset notification time windows in minutes
+const NOTIFICATION_PRESETS = {
+  '1Day': 1440,   // 24 hours
+  '1Hour': 60,    // 1 hour
+  '30Min': 30,    // 30 minutes
+  '15Min': 15,    // 15 minutes
+} as const
+
+type NotificationLevel = keyof typeof NOTIFICATION_PRESETS
+
 // Check if Slack webhook is configured via environment variable
 export async function isSlackWebhookLocked(): Promise<boolean> {
   return !!process.env.SLACK_WEBHOOK_URL
@@ -11,17 +21,18 @@ export async function isSlackWebhookLocked(): Promise<boolean> {
 // Get or create notification settings (singleton pattern)
 export async function getNotificationSettings() {
   let settings = await prisma.notificationSettings.findFirst()
-  
+
   if (!settings) {
     settings = await prisma.notificationSettings.create({
       data: {
         emailEnabled: false,
         telegramEnabled: false,
         slackEnabled: false,
+        notify30MinBefore: true, // Default on
       },
     })
   }
-  
+
   return settings
 }
 
@@ -34,212 +45,163 @@ export async function updateNotificationSettings(data: {
   slackEnabled?: boolean
   slackWebhookUrl?: string | null
   slackChannel?: string | null
-  reminderMinutesBefore?: number
+  notify1DayBefore?: boolean
+  notify1HourBefore?: boolean
+  notify30MinBefore?: boolean
+  notify15MinBefore?: boolean
 }) {
   const settings = await getNotificationSettings()
-  
+
   const updated = await prisma.notificationSettings.update({
     where: { id: settings.id },
     data,
   })
-  
+
   revalidatePath('/settings')
   return updated
 }
 
-// Send notification for a reminder (uses per-team-member settings)
-export async function sendReminderNotification(reminderId: string) {
-  const reminder = await prisma.reminder.findUnique({
-    where: { id: reminderId },
-    include: {
-      lead: {
-        include: { assignee: true },
-      },
-    },
-  })
-
-  if (!reminder || reminder.completed || reminder.notified) {
-    return { success: false, message: 'Reminder not found or already processed' }
-  }
-
-  const settings = await getNotificationSettings()
-  const results: { channel: string; success: boolean; error?: string }[] = []
-  const assignee = reminder.lead.assignee
-
-  // Check if assignee wants notifications
-  if (assignee && assignee.notifyOnReminder === false) {
-    // Mark as notified but skip sending (user opted out)
-    await prisma.reminder.update({
-      where: { id: reminderId },
-      data: { notified: true },
-    })
-    return { success: true, message: 'Assignee has notifications disabled', results: [] }
-  }
-
-  const message = formatReminderMessage(reminder)
-
-  // Send via Email (to assignee's email if available, otherwise global)
-  if (settings.emailEnabled) {
-    const emailTo = assignee?.email || settings.emailAddress
-    if (emailTo) {
-      try {
-        await sendEmailNotification(emailTo, `Reminder: ${reminder.lead.name}`, message)
-        results.push({ channel: 'email', success: true })
-      } catch (error) {
-        results.push({ channel: 'email', success: false, error: String(error) })
-      }
-    }
-  }
-
-  // Send via Telegram (to assignee's chat ID if available, otherwise global)
-  if (settings.telegramEnabled && settings.telegramBotToken) {
-    const chatId = assignee?.telegramChatId || settings.telegramChatId
-    if (chatId) {
-      try {
-        await sendTelegramNotification(settings.telegramBotToken, chatId, message)
-        results.push({ channel: 'telegram', success: true })
-      } catch (error) {
-        results.push({ channel: 'telegram', success: false, error: String(error) })
-      }
-    }
-  }
-
-  // Send via Slack (use env var for webhook, mention assignee if they have a Slack user ID)
-  const slackWebhook = process.env.SLACK_WEBHOOK_URL || settings.slackWebhookUrl
-  if (settings.slackEnabled && slackWebhook) {
-    try {
-      // If assignee has a Slack user ID, mention them
-      const slackMessage = assignee?.slackUserId
-        ? `<@${assignee.slackUserId}> ${message}`
-        : message
-
-      await sendSlackNotification(
-        slackWebhook,
-        slackMessage,
-        settings.slackChannel || undefined
-      )
-      results.push({ channel: 'slack', success: true })
-    } catch (error) {
-      results.push({ channel: 'slack', success: false, error: String(error) })
-    }
-  }
-
-  // Mark reminder as notified
-  if (results.some(r => r.success)) {
-    await prisma.reminder.update({
-      where: { id: reminderId },
-      data: { notified: true },
-    })
-  }
-
-  return { success: results.some(r => r.success), results }
+// Get enabled notification levels from settings
+function getEnabledLevels(settings: {
+  notify1DayBefore: boolean
+  notify1HourBefore: boolean
+  notify30MinBefore: boolean
+  notify15MinBefore: boolean
+}): NotificationLevel[] {
+  const levels: NotificationLevel[] = []
+  if (settings.notify1DayBefore) levels.push('1Day')
+  if (settings.notify1HourBefore) levels.push('1Hour')
+  if (settings.notify30MinBefore) levels.push('30Min')
+  if (settings.notify15MinBefore) levels.push('15Min')
+  return levels
 }
 
-// Get reminders that need notifications
-export async function getPendingNotifications() {
-  const settings = await getNotificationSettings()
-  const minutesBefore = settings.reminderMinutesBefore
-  
-  const now = new Date()
-  const notifyBefore = new Date(now.getTime() + minutesBefore * 60 * 1000)
-  
-  return prisma.reminder.findMany({
-    where: {
-      completed: false,
-      notified: false,
-      dueAt: {
-        lte: notifyBefore,
-      },
-    },
-    include: {
-      lead: {
-        include: { assignee: true },
-      },
-    },
-  })
+// Check if a reminder is within a notification window
+function isWithinWindow(dueAt: Date, level: NotificationLevel, now: Date): boolean {
+  const minutesBefore = NOTIFICATION_PRESETS[level]
+  const windowStart = new Date(dueAt.getTime() - minutesBefore * 60 * 1000)
+  return now >= windowStart && now < dueAt
+}
+
+// Get the notified field name for a level
+function getNotifiedField(level: NotificationLevel): string {
+  return `notified${level}`
+}
+
+// Format time until due
+function formatTimeUntil(dueAt: Date, now: Date): string {
+  const diffMs = dueAt.getTime() - now.getTime()
+  const diffMins = Math.round(diffMs / (60 * 1000))
+
+  if (diffMins < 60) return `${diffMins} minutes`
+  if (diffMins < 1440) return `${Math.round(diffMins / 60)} hour${Math.round(diffMins / 60) > 1 ? 's' : ''}`
+  return `${Math.round(diffMins / 1440)} day${Math.round(diffMins / 1440) > 1 ? 's' : ''}`
 }
 
 // Process all pending notifications (both lead and deal reminders)
 export async function processPendingNotifications() {
+  const settings = await getNotificationSettings()
+  const enabledLevels = getEnabledLevels(settings)
+  const now = new Date()
   const results = []
 
+  if (enabledLevels.length === 0) {
+    return { message: 'No notification times enabled', results: [] }
+  }
+
   // Process lead reminders
-  const pendingLeadReminders = await getPendingNotifications()
-  for (const reminder of pendingLeadReminders) {
-    const result = await sendReminderNotification(reminder.id)
-    results.push({ type: 'lead', reminderId: reminder.id, ...result })
+  const leadReminders = await prisma.reminder.findMany({
+    where: {
+      completed: false,
+      dueAt: { gt: now }, // Only future reminders
+    },
+    include: {
+      lead: { include: { assignee: true } },
+    },
+  })
+
+  for (const reminder of leadReminders) {
+    for (const level of enabledLevels) {
+      const notifiedField = getNotifiedField(level) as keyof typeof reminder
+      const alreadyNotified = reminder[notifiedField] as boolean
+
+      if (!alreadyNotified && isWithinWindow(reminder.dueAt, level, now)) {
+        const result = await sendReminderNotificationForLevel(reminder, level, settings, now)
+        results.push({
+          type: 'lead',
+          reminderId: reminder.id,
+          level,
+          ...result
+        })
+      }
+    }
   }
 
   // Process deal reminders
-  const pendingDealReminders = await getPendingDealNotifications()
-  for (const reminder of pendingDealReminders) {
-    const result = await sendDealReminderNotification(reminder.id)
-    results.push({ type: 'deal', reminderId: reminder.id, ...result })
+  const dealReminders = await prisma.dealReminder.findMany({
+    where: {
+      completed: false,
+      dueAt: { gt: now }, // Only future reminders
+    },
+    include: {
+      deal: { include: { assignee: true } },
+    },
+  })
+
+  for (const reminder of dealReminders) {
+    for (const level of enabledLevels) {
+      const notifiedField = getNotifiedField(level) as keyof typeof reminder
+      const alreadyNotified = reminder[notifiedField] as boolean
+
+      if (!alreadyNotified && isWithinWindow(reminder.dueAt, level, now)) {
+        const result = await sendDealReminderNotificationForLevel(reminder, level, settings, now)
+        results.push({
+          type: 'deal',
+          reminderId: reminder.id,
+          level,
+          ...result
+        })
+      }
+    }
   }
 
   return results
 }
 
-// Get deal reminders that need notifications
-export async function getPendingDealNotifications() {
-  const settings = await getNotificationSettings()
-  const minutesBefore = settings.reminderMinutesBefore
-
-  const now = new Date()
-  const notifyBefore = new Date(now.getTime() + minutesBefore * 60 * 1000)
-
-  return prisma.dealReminder.findMany({
-    where: {
-      completed: false,
-      notified: false,
-      dueAt: {
-        lte: notifyBefore,
-      },
-    },
-    include: {
-      deal: {
-        include: { assignee: true },
-      },
-    },
-  })
-}
-
-// Send notification for a deal reminder
-export async function sendDealReminderNotification(reminderId: string) {
-  const reminder = await prisma.dealReminder.findUnique({
-    where: { id: reminderId },
-    include: {
-      deal: {
-        include: { assignee: true },
-      },
-    },
-  })
-
-  if (!reminder || reminder.completed || reminder.notified) {
-    return { success: false, message: 'Deal reminder not found or already processed' }
-  }
-
-  const settings = await getNotificationSettings()
+// Send notification for a lead reminder at a specific level
+async function sendReminderNotificationForLevel(
+  reminder: {
+    id: string
+    dueAt: Date
+    note: string | null
+    lead: { name: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean } | null }
+  },
+  level: NotificationLevel,
+  settings: Awaited<ReturnType<typeof getNotificationSettings>>,
+  now: Date
+) {
   const results: { channel: string; success: boolean; error?: string }[] = []
-  const assignee = reminder.deal.assignee
+  const assignee = reminder.lead.assignee
 
   // Check if assignee wants notifications
   if (assignee && assignee.notifyOnReminder === false) {
-    await prisma.dealReminder.update({
-      where: { id: reminderId },
-      data: { notified: true },
+    // Mark this level as notified but skip sending
+    await prisma.reminder.update({
+      where: { id: reminder.id },
+      data: { [getNotifiedField(level)]: true },
     })
     return { success: true, message: 'Assignee has notifications disabled', results: [] }
   }
 
-  const message = formatDealReminderMessage(reminder)
+  const timeUntil = formatTimeUntil(reminder.dueAt, now)
+  const message = formatReminderMessage(reminder, timeUntil)
 
   // Send via Email
   if (settings.emailEnabled) {
     const emailTo = assignee?.email || settings.emailAddress
     if (emailTo) {
       try {
-        await sendEmailNotification(emailTo, `Deal Reminder: ${reminder.deal.communityName}`, message)
+        await sendEmailNotification(emailTo, `Reminder: ${reminder.lead.name} (${timeUntil})`, message)
         results.push({ channel: 'email', success: true })
       } catch (error) {
         results.push({ channel: 'email', success: false, error: String(error) })
@@ -268,33 +230,211 @@ export async function sendDealReminderNotification(reminderId: string) {
         ? `<@${assignee.slackUserId}> ${message}`
         : message
 
-      await sendSlackNotification(
-        slackWebhook,
-        slackMessage,
-        settings.slackChannel || undefined
-      )
+      await sendSlackNotification(slackWebhook, slackMessage, settings.slackChannel || undefined)
       results.push({ channel: 'slack', success: true })
     } catch (error) {
       results.push({ channel: 'slack', success: false, error: String(error) })
     }
   }
 
-  // Mark reminder as notified
+  // Mark this level as notified
   if (results.some(r => r.success)) {
-    await prisma.dealReminder.update({
-      where: { id: reminderId },
-      data: { notified: true },
+    await prisma.reminder.update({
+      where: { id: reminder.id },
+      data: { [getNotifiedField(level)]: true },
     })
   }
 
   return { success: results.some(r => r.success), results }
 }
 
+// Send notification for a deal reminder at a specific level
+async function sendDealReminderNotificationForLevel(
+  reminder: {
+    id: string
+    dueAt: Date
+    note: string | null
+    type: string
+    deal: { communityName: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean } | null }
+  },
+  level: NotificationLevel,
+  settings: Awaited<ReturnType<typeof getNotificationSettings>>,
+  now: Date
+) {
+  const results: { channel: string; success: boolean; error?: string }[] = []
+  const assignee = reminder.deal.assignee
+
+  // Check if assignee wants notifications
+  if (assignee && assignee.notifyOnReminder === false) {
+    await prisma.dealReminder.update({
+      where: { id: reminder.id },
+      data: { [getNotifiedField(level)]: true },
+    })
+    return { success: true, message: 'Assignee has notifications disabled', results: [] }
+  }
+
+  const timeUntil = formatTimeUntil(reminder.dueAt, now)
+  const message = formatDealReminderMessage(reminder, timeUntil)
+
+  // Send via Email
+  if (settings.emailEnabled) {
+    const emailTo = assignee?.email || settings.emailAddress
+    if (emailTo) {
+      try {
+        await sendEmailNotification(emailTo, `Deal Reminder: ${reminder.deal.communityName} (${timeUntil})`, message)
+        results.push({ channel: 'email', success: true })
+      } catch (error) {
+        results.push({ channel: 'email', success: false, error: String(error) })
+      }
+    }
+  }
+
+  // Send via Telegram
+  if (settings.telegramEnabled && settings.telegramBotToken) {
+    const chatId = assignee?.telegramChatId || settings.telegramChatId
+    if (chatId) {
+      try {
+        await sendTelegramNotification(settings.telegramBotToken, chatId, message)
+        results.push({ channel: 'telegram', success: true })
+      } catch (error) {
+        results.push({ channel: 'telegram', success: false, error: String(error) })
+      }
+    }
+  }
+
+  // Send via Slack
+  const slackWebhook = process.env.SLACK_WEBHOOK_URL || settings.slackWebhookUrl
+  if (settings.slackEnabled && slackWebhook) {
+    try {
+      const slackMessage = assignee?.slackUserId
+        ? `<@${assignee.slackUserId}> ${message}`
+        : message
+
+      await sendSlackNotification(slackWebhook, slackMessage, settings.slackChannel || undefined)
+      results.push({ channel: 'slack', success: true })
+    } catch (error) {
+      results.push({ channel: 'slack', success: false, error: String(error) })
+    }
+  }
+
+  // Mark this level as notified
+  if (results.some(r => r.success)) {
+    await prisma.dealReminder.update({
+      where: { id: reminder.id },
+      data: { [getNotifiedField(level)]: true },
+    })
+  }
+
+  return { success: results.some(r => r.success), results }
+}
+
+// Legacy functions - kept for backwards compatibility with cron debug endpoint
+export async function getPendingNotifications() {
+  const settings = await getNotificationSettings()
+  const enabledLevels = getEnabledLevels(settings)
+  const now = new Date()
+
+  // Get the furthest notification window
+  const maxMinutes = enabledLevels.length > 0
+    ? Math.max(...enabledLevels.map(l => NOTIFICATION_PRESETS[l]))
+    : 30
+
+  const notifyBefore = new Date(now.getTime() + maxMinutes * 60 * 1000)
+
+  return prisma.reminder.findMany({
+    where: {
+      completed: false,
+      dueAt: {
+        gt: now,
+        lte: notifyBefore,
+      },
+    },
+    include: {
+      lead: { include: { assignee: true } },
+    },
+  })
+}
+
+export async function getPendingDealNotifications() {
+  const settings = await getNotificationSettings()
+  const enabledLevels = getEnabledLevels(settings)
+  const now = new Date()
+
+  const maxMinutes = enabledLevels.length > 0
+    ? Math.max(...enabledLevels.map(l => NOTIFICATION_PRESETS[l]))
+    : 30
+
+  const notifyBefore = new Date(now.getTime() + maxMinutes * 60 * 1000)
+
+  return prisma.dealReminder.findMany({
+    where: {
+      completed: false,
+      dueAt: {
+        gt: now,
+        lte: notifyBefore,
+      },
+    },
+    include: {
+      deal: { include: { assignee: true } },
+    },
+  })
+}
+
+// Legacy send functions - redirect to use level-based system
+export async function sendReminderNotification(reminderId: string) {
+  const reminder = await prisma.reminder.findUnique({
+    where: { id: reminderId },
+    include: { lead: { include: { assignee: true } } },
+  })
+
+  if (!reminder || reminder.completed) {
+    return { success: false, message: 'Reminder not found or completed' }
+  }
+
+  const settings = await getNotificationSettings()
+  const now = new Date()
+
+  // Find the first applicable level that hasn't been notified
+  const enabledLevels = getEnabledLevels(settings)
+  for (const level of enabledLevels) {
+    const notifiedField = getNotifiedField(level) as keyof typeof reminder
+    if (!reminder[notifiedField] && isWithinWindow(reminder.dueAt, level, now)) {
+      return sendReminderNotificationForLevel(reminder, level, settings, now)
+    }
+  }
+
+  return { success: false, message: 'No applicable notification level' }
+}
+
+export async function sendDealReminderNotification(reminderId: string) {
+  const reminder = await prisma.dealReminder.findUnique({
+    where: { id: reminderId },
+    include: { deal: { include: { assignee: true } } },
+  })
+
+  if (!reminder || reminder.completed) {
+    return { success: false, message: 'Deal reminder not found or completed' }
+  }
+
+  const settings = await getNotificationSettings()
+  const now = new Date()
+
+  const enabledLevels = getEnabledLevels(settings)
+  for (const level of enabledLevels) {
+    const notifiedField = getNotifiedField(level) as keyof typeof reminder
+    if (!reminder[notifiedField] && isWithinWindow(reminder.dueAt, level, now)) {
+      return sendDealReminderNotificationForLevel(reminder, level, settings, now)
+    }
+  }
+
+  return { success: false, message: 'No applicable notification level' }
+}
+
 // Test notification channels
 export async function testNotificationChannel(channel: 'email' | 'telegram' | 'slack') {
   const settings = await getNotificationSettings()
   const testMessage = '🔔 Test notification from Pipeline CRM - Your notifications are working!'
-  
+
   try {
     switch (channel) {
       case 'email':
@@ -320,13 +460,13 @@ export async function testNotificationChannel(channel: 'email' | 'telegram' | 's
 }
 
 // Helper: Format lead reminder message
-function formatReminderMessage(reminder: {
-  dueAt: Date
-  note: string | null
-  lead: { name: string; assignee: { name: string } | null }
-}) {
+function formatReminderMessage(
+  reminder: { dueAt: Date; note: string | null; lead: { name: string; assignee: { name: string } | null } },
+  timeUntil: string
+) {
   const dueTime = reminder.dueAt.toLocaleString()
   let message = `🔔 Reminder: Follow up with ${reminder.lead.name}\n`
+  message += `⏰ Due in: ${timeUntil}\n`
   message += `📅 Due: ${dueTime}\n`
   if (reminder.note) {
     message += `📝 Note: ${reminder.note}\n`
@@ -338,12 +478,10 @@ function formatReminderMessage(reminder: {
 }
 
 // Helper: Format deal reminder message
-function formatDealReminderMessage(reminder: {
-  dueAt: Date
-  note: string | null
-  type: string
-  deal: { communityName: string; assignee: { name: string } | null }
-}) {
+function formatDealReminderMessage(
+  reminder: { dueAt: Date; note: string | null; type: string; deal: { communityName: string; assignee: { name: string } | null } },
+  timeUntil: string
+) {
   const dueTime = reminder.dueAt.toLocaleString()
   const typeEmoji = {
     PAYMENT: '💰',
@@ -353,6 +491,7 @@ function formatDealReminderMessage(reminder: {
   }[reminder.type] || '📌'
 
   let message = `${typeEmoji} Deal Reminder: ${reminder.deal.communityName}\n`
+  message += `⏰ Due in: ${timeUntil}\n`
   message += `📅 Due: ${dueTime}\n`
   message += `🏷️ Type: ${reminder.type}\n`
   if (reminder.note) {
@@ -364,23 +503,16 @@ function formatDealReminderMessage(reminder: {
   return message
 }
 
-// Helper: Send email notification (using a simple fetch to a mail service)
+// Helper: Send email notification
 async function sendEmailNotification(to: string, subject: string, body: string) {
-  // For production, integrate with SendGrid, Resend, or similar
-  // This is a placeholder that logs the email
   console.log(`📧 Email to ${to}: ${subject}\n${body}`)
-  
-  // If you want to use Resend (recommended):
-  // const resend = new Resend(process.env.RESEND_API_KEY)
-  // await resend.emails.send({ from: 'crm@yourdomain.com', to, subject, text: body })
-  
   return { success: true }
 }
 
 // Helper: Send Telegram notification
 async function sendTelegramNotification(botToken: string, chatId: string, message: string) {
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -390,12 +522,12 @@ async function sendTelegramNotification(botToken: string, chatId: string, messag
       parse_mode: 'HTML',
     }),
   })
-  
+
   if (!response.ok) {
     const error = await response.text()
     throw new Error(`Telegram API error: ${error}`)
   }
-  
+
   return { success: true }
 }
 
@@ -405,16 +537,16 @@ async function sendSlackNotification(webhookUrl: string, message: string, channe
   if (channel) {
     payload.channel = channel
   }
-  
+
   const response = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  
+
   if (!response.ok) {
     throw new Error(`Slack webhook error: ${response.statusText}`)
   }
-  
+
   return { success: true }
 }

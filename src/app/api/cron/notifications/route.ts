@@ -34,7 +34,12 @@ export async function GET(request: Request) {
           slackWebhookConfigured: !!process.env.SLACK_WEBHOOK_URL || !!settings.slackWebhookUrl,
           emailEnabled: settings.emailEnabled,
           telegramEnabled: settings.telegramEnabled,
-          reminderMinutesBefore: settings.reminderMinutesBefore,
+          notificationTimes: {
+            notify1DayBefore: settings.notify1DayBefore,
+            notify1HourBefore: settings.notify1HourBefore,
+            notify30MinBefore: settings.notify30MinBefore,
+            notify15MinBefore: settings.notify15MinBefore,
+          },
         },
         pendingLeadReminders: pendingLeadReminders.map(r => ({
           id: r.id,
@@ -42,8 +47,13 @@ export async function GET(request: Request) {
           assignee: r.lead.assignee?.name || 'Unassigned',
           assigneeSlackId: r.lead.assignee?.slackUserId || null,
           dueAt: r.dueAt,
-          notified: r.notified,
           completed: r.completed,
+          notifiedLevels: {
+            '1Day': r.notified1Day,
+            '1Hour': r.notified1Hour,
+            '30Min': r.notified30Min,
+            '15Min': r.notified15Min,
+          },
         })),
         pendingDealReminders: pendingDealReminders.map(r => ({
           id: r.id,
@@ -53,8 +63,13 @@ export async function GET(request: Request) {
           assigneeSlackId: r.deal.assignee?.slackUserId || null,
           note: r.note,
           dueAt: r.dueAt,
-          notified: r.notified,
           completed: r.completed,
+          notifiedLevels: {
+            '1Day': r.notified1Day,
+            '1Hour': r.notified1Hour,
+            '30Min': r.notified30Min,
+            '15Min': r.notified15Min,
+          },
         })),
         timestamp: new Date().toISOString(),
       })
@@ -62,10 +77,13 @@ export async function GET(request: Request) {
 
     const results = await processPendingNotifications()
 
+    // Handle both array and object return types
+    const resultArray = Array.isArray(results) ? results : results.results || []
+
     return NextResponse.json({
       success: true,
-      processed: results.length,
-      results,
+      processed: resultArray.length,
+      results: resultArray,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

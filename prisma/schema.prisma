@@ -91,7 +91,11 @@ model Reminder {
   note        String?
   completed   Boolean   @default(false)
   completedAt DateTime?
-  notified    Boolean   @default(false) // Has notification been sent?
+  notified    Boolean   @default(false) // Legacy - kept for compatibility
+  notified1Day  Boolean @default(false) // Notified 1 day before?
+  notified1Hour Boolean @default(false) // Notified 1 hour before?
+  notified30Min Boolean @default(false) // Notified 30 min before?
+  notified15Min Boolean @default(false) // Notified 15 min before?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -114,9 +118,13 @@ model NotificationSettings {
   slackWebhookUrl String?
   slackChannel    String?
   
-  // Timing
-  reminderMinutesBefore Int @default(30) // How many minutes before due time to notify
-  
+  // Timing - preset notification times
+  reminderMinutesBefore Int @default(30) // Legacy - kept for compatibility
+  notify1DayBefore  Boolean @default(false) // Notify 1 day (24 hours) before
+  notify1HourBefore Boolean @default(false) // Notify 1 hour before
+  notify30MinBefore Boolean @default(true)  // Notify 30 minutes before (default on)
+  notify15MinBefore Boolean @default(false) // Notify 15 minutes before
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -175,7 +183,11 @@ model DealReminder {
   type        String    @default("PAYMENT") // PAYMENT, VESTING, REVIEW, OTHER
   completed   Boolean   @default(false)
   completedAt DateTime?
-  notified    Boolean   @default(false)
+  notified    Boolean   @default(false) // Legacy - kept for compatibility
+  notified1Day  Boolean @default(false) // Notified 1 day before?
+  notified1Hour Boolean @default(false) // Notified 1 hour before?
+  notified30Min Boolean @default(false) // Notified 30 min before?
+  notified15Min Boolean @default(false) // Notified 15 min before?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
