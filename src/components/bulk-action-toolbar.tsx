@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Users, ArrowRight, CheckSquare } from 'lucide-react'
+import { X, Users, ArrowRight, CheckSquare, Undo2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { PipelineStage, PIPELINE_STAGES, STAGE_LABELS } from '@/lib/types'
 import { bulkAssignLeads, bulkMoveLeads } from '@/lib/actions'
 
@@ -31,21 +32,79 @@ export function BulkActionToolbar({
   const [isPending, startTransition] = useTransition()
   const [showAssignDropdown, setShowAssignDropdown] = useState(false)
   const [showMoveDropdown, setShowMoveDropdown] = useState(false)
+  const [lastAction, setLastAction] = useState<{
+    type: 'assign' | 'move'
+    leadIds: string[]
+    previousValue: string | null
+  } | null>(null)
 
-  const handleAssign = (teamMemberId: string | null) => {
+  const handleAssign = (teamMemberId: string | null, teamMemberName?: string) => {
+    const leadIds = [...selectedLeadIds]
     startTransition(async () => {
-      await bulkAssignLeads(selectedLeadIds, teamMemberId)
-      setShowAssignDropdown(false)
-      onClearSelection()
+      try {
+        await bulkAssignLeads(leadIds, teamMemberId)
+        setShowAssignDropdown(false)
+        onClearSelection()
+        
+        const message = teamMemberId 
+          ? `${leadIds.length} lead${leadIds.length !== 1 ? 's' : ''} assigned to ${teamMemberName}`
+          : `${leadIds.length} lead${leadIds.length !== 1 ? 's' : ''} unassigned`
+        
+        toast.success(message, {
+          action: {
+            label: 'Undo',
+            onClick: () => handleUndoAssign(leadIds),
+          },
+          duration: 10000,
+        })
+        
+        setLastAction({ type: 'assign', leadIds, previousValue: null })
+      } catch {
+        toast.error('Failed to assign leads')
+      }
     })
   }
 
   const handleMove = (stage: PipelineStage) => {
+    const leadIds = [...selectedLeadIds]
     startTransition(async () => {
-      await bulkMoveLeads(selectedLeadIds, stage)
-      setShowMoveDropdown(false)
-      onClearSelection()
+      try {
+        await bulkMoveLeads(leadIds, stage)
+        setShowMoveDropdown(false)
+        onClearSelection()
+        
+        toast.success(`${leadIds.length} lead${leadIds.length !== 1 ? 's' : ''} moved to ${STAGE_LABELS[stage]}`, {
+          action: {
+            label: 'Undo',
+            onClick: () => handleUndoMove(leadIds),
+          },
+          duration: 10000,
+        })
+        
+        setLastAction({ type: 'move', leadIds, previousValue: stage })
+      } catch {
+        toast.error('Failed to move leads')
+      }
     })
+  }
+
+  const handleUndoAssign = async (leadIds: string[]) => {
+    try {
+      await bulkAssignLeads(leadIds, null)
+      toast.success('Action undone')
+    } catch {
+      toast.error('Failed to undo')
+    }
+  }
+
+  const handleUndoMove = async (leadIds: string[]) => {
+    try {
+      // Move back to NEW stage as a simple undo
+      await bulkMoveLeads(leadIds, 'NEW')
+      toast.success('Action undone - leads moved to New')
+    } catch {
+      toast.error('Failed to undo')
+    }
   }
 
   if (selectedCount === 0) {
@@ -90,7 +149,7 @@ export function BulkActionToolbar({
           {showAssignDropdown && (
             <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
               <button
-                onClick={() => handleAssign(null)}
+                onClick={() => handleAssign(null, undefined)}
                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
               >
                 Unassign
@@ -99,7 +158,7 @@ export function BulkActionToolbar({
               {teamMembers.map(member => (
                 <button
                   key={member.id}
-                  onClick={() => handleAssign(member.id)}
+                  onClick={() => handleAssign(member.id, member.name)}
                   className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
                 >
                   {member.name}

@@ -160,7 +160,7 @@
 - [x] Add "Set Reminder" button to lead detail
 - [x] Build date/time picker for reminder
 - [x] Add optional note field for reminder
-- [ ] Show reminder icon on lead cards with upcoming reminders
+- [x] Show reminder icon on lead cards with upcoming reminders
 - [x] Build "My Reminders" page showing upcoming reminders
 - [x] Implement mark reminder complete
 - [x] Implement snooze (1 day, 1 week)
