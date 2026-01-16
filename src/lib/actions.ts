@@ -257,7 +257,7 @@ export async function getTeamMember(id: string) {
   })
 }
 
-export async function updateTeamMember(id: string, data: { name?: string; email?: string }) {
+export async function updateTeamMember(id: string, data: { name?: string; email?: string; color?: string }) {
   const member = await prisma.teamMember.update({
     where: { id },
     data,

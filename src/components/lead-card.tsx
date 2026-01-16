@@ -48,7 +48,7 @@ type Lead = {
   source: string | null
   score?: number
   isHot?: boolean
-  assignee: { id: string; name: string; email: string } | null
+  assignee: { id: string; name: string; email: string; color?: string } | null
   tags?: Tag[]
   reminders?: Reminder[]
   notes: Array<{
@@ -130,18 +130,35 @@ export function LeadCard({
     onSelectionChange?.(lead.id, !isSelected)
   }
 
+  // Convert hex color to rgba with opacity
+  const hexToRgba = (hex: string, opacity: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+
+  // Get the team member's color tint for the card background
+  const assigneeColor = lead.assignee?.color
+  const cardStyle = {
+    ...style,
+    ...(assigneeColor && !isSelected
+      ? { backgroundColor: hexToRgba(assigneeColor, 0.15) }
+      : {}),
+  }
+
   return (
     <>
       <div
         ref={setNodeRef}
-        style={style}
+        style={cardStyle}
         {...(selectionMode ? {} : { ...listeners, ...attributes })}
         onClick={handleClick}
-        className={`bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border-2 hover:shadow-md transition-all ${
+        className={`rounded-lg p-3 shadow-sm border-2 hover:shadow-md transition-all ${
           isDragging ? 'shadow-lg opacity-90' : ''
         } ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'} ${
           selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
-        }`}
+        } ${!assigneeColor && !isSelected ? 'bg-white dark:bg-gray-800' : ''}`}
       >
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -238,6 +255,12 @@ export function LeadCard({
           <div className="flex items-center gap-1">
             {lead.assignee ? (
               <>
+                {lead.assignee.color && (
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: lead.assignee.color }}
+                  />
+                )}
                 <User className="w-3 h-3" />
                 <span className="truncate max-w-[80px]">{lead.assignee.name}</span>
               </>

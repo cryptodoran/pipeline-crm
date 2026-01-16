@@ -50,6 +50,7 @@ model TeamMember {
   id         String   @id @default(cuid())
   name       String
   email      String   @unique
+  color      String   @default("#6366f1") // Team member color for visual identification
   leads      Lead[]
   notes      Note[]
   activities Activity[]

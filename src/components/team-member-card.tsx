@@ -5,11 +5,26 @@ import { Trash2, AlertTriangle, X, Edit2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { deleteTeamMember, updateTeamMember } from '@/lib/actions'
 
+// Preset colors for team members
+const TEAM_COLORS = [
+  { value: '#ef4444', label: 'Red' },
+  { value: '#f97316', label: 'Orange' },
+  { value: '#eab308', label: 'Yellow' },
+  { value: '#22c55e', label: 'Green' },
+  { value: '#06b6d4', label: 'Cyan' },
+  { value: '#3b82f6', label: 'Blue' },
+  { value: '#6366f1', label: 'Indigo' },
+  { value: '#8b5cf6', label: 'Purple' },
+  { value: '#ec4899', label: 'Pink' },
+  { value: '#64748b', label: 'Gray' },
+]
+
 interface TeamMemberCardProps {
   member: {
     id: string
     name: string
     email: string
+    color?: string
     _count: {
       leads: number
     }
@@ -21,6 +36,7 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(member.name)
   const [editEmail, setEditEmail] = useState(member.email)
+  const [editColor, setEditColor] = useState(member.color || '#6366f1')
   const [isPending, startTransition] = useTransition()
 
   const handleDelete = () => {
@@ -40,12 +56,13 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
       toast.error('Name and email are required')
       return
     }
-    
+
     startTransition(async () => {
       try {
-        await updateTeamMember(member.id, { 
-          name: editName.trim(), 
-          email: editEmail.trim() 
+        await updateTeamMember(member.id, {
+          name: editName.trim(),
+          email: editEmail.trim(),
+          color: editColor,
         })
         toast.success('Team member updated')
         setIsEditing(false)
@@ -58,6 +75,7 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
   const handleCancelEdit = () => {
     setEditName(member.name)
     setEditEmail(member.email)
+    setEditColor(member.color || '#6366f1')
     setIsEditing(false)
   }
 
@@ -80,11 +98,37 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
               className="w-full px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Email"
             />
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">Color:</span>
+              <div className="flex gap-1">
+                {TEAM_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() => setEditColor(color.value)}
+                    className={`w-6 h-6 rounded-full border-2 transition-all ${
+                      editColor === color.value
+                        ? 'border-white scale-110'
+                        : 'border-transparent hover:border-gray-400'
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.label}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
-          <div>
-            <h3 className="font-medium text-white">{member.name}</h3>
-            <p className="text-sm text-gray-400">{member.email}</p>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-4 h-4 rounded-full flex-shrink-0"
+              style={{ backgroundColor: member.color || '#6366f1' }}
+              title="Team member color"
+            />
+            <div>
+              <h3 className="font-medium text-white">{member.name}</h3>
+              <p className="text-sm text-gray-400">{member.email}</p>
+            </div>
           </div>
         )}
         
