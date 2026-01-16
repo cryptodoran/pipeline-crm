@@ -1,7 +1,11 @@
 import { getUpcomingReminders, getOverdueReminders, getTodaysReminders } from '@/lib/actions'
+import { requireAuth } from '@/lib/current-user'
 import { RemindersManager } from './reminders-manager'
 
+export const dynamic = 'force-dynamic'
+
 export default async function RemindersPage() {
+  await requireAuth()
   const [todayReminders, upcomingReminders, overdueReminders] = await Promise.all([
     getTodaysReminders(),
     getUpcomingReminders(),

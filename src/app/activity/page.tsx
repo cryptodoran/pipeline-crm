@@ -1,9 +1,13 @@
 import { getRecentActivities, getActivityStats, getTeamActivityStats } from '@/lib/activity-actions'
+import { requireAuth } from '@/lib/current-user'
 import { ACTIVITY_TYPES } from '@/lib/activity-types'
 import { ActivityFeed } from './activity-feed'
 import { Activity, BarChart3, Users, TrendingUp } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ActivityPage() {
+  await requireAuth()
   const [activities, stats, teamStats] = await Promise.all([
     getRecentActivities(100),
     getActivityStats(7),

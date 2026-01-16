@@ -1,8 +1,12 @@
 import { getStages } from '@/lib/stage-actions'
+import { requireAuth } from '@/lib/current-user'
 import { StagesManager } from './stages-manager'
 import { Layers } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function StagesPage() {
+  await requireAuth()
   const stages = await getStages()
 
   return (

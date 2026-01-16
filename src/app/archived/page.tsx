@@ -1,8 +1,12 @@
 import { getArchivedLeads } from '@/lib/actions'
+import { requireAuth } from '@/lib/current-user'
 import { ArchivedLeadsManager } from './archived-manager'
 import { Archive } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ArchivedPage() {
+  await requireAuth()
   const leads = await getArchivedLeads()
 
   return (

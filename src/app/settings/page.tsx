@@ -1,8 +1,12 @@
 import { getNotificationSettings } from '@/lib/notifications'
+import { requireAuth } from '@/lib/current-user'
 import { NotificationSettingsForm } from '@/components/notification-settings-form'
 import { Settings, Bell, Mail, MessageCircle } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function SettingsPage() {
+  await requireAuth()
   const settings = await getNotificationSettings()
 
   return (

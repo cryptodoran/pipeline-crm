@@ -1,6 +1,6 @@
 import { getLeads, getTeamMembers, getTags } from '@/lib/actions'
 import { getStagesConfig, getStages } from '@/lib/stage-actions'
-import { getCurrentUserId } from '@/lib/current-user'
+import { requireIdentity } from '@/lib/current-user'
 import { KanbanBoard } from '@/components/kanban-board'
 import { AddLeadButton } from '@/components/add-lead-button'
 import { ExportButton } from '@/components/export-button'
@@ -10,13 +10,15 @@ import { StageSettings } from '@/components/stage-settings'
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const [leads, teamMembers, tags, stagesConfig, stagesData, currentUserId] = await Promise.all([
+  // Server-side auth check - redirects to login if not authenticated
+  const currentUserId = await requireIdentity()
+
+  const [leads, teamMembers, tags, stagesConfig, stagesData] = await Promise.all([
     getLeads(),
     getTeamMembers(),
     getTags(),
     getStagesConfig(),
     getStages(),
-    getCurrentUserId(),
   ])
 
   const { stages, stageLabels, stageColors } = stagesConfig

@@ -1,9 +1,13 @@
 import { getTeamMembers } from '@/lib/actions'
+import { requireAuth } from '@/lib/current-user'
 import { AddTeamMemberButton } from '@/components/add-team-member-button'
 import { TeamMemberCard } from '@/components/team-member-card'
 import { Users } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function TeamPage() {
+  await requireAuth()
   const teamMembers = await getTeamMembers()
 
   return (
