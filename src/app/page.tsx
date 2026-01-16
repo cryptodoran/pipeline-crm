@@ -2,6 +2,10 @@ import { getLeads, getTeamMembers, getTags } from '@/lib/actions'
 import { PIPELINE_STAGES, STAGE_LABELS, STAGE_COLORS, PipelineStage } from '@/lib/types'
 import { KanbanBoard } from '@/components/kanban-board'
 import { AddLeadButton } from '@/components/add-lead-button'
+import { ExportButton } from '@/components/export-button'
+import { ImportButton } from '@/components/import-button'
+
+export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const [leads, teamMembers, tags] = await Promise.all([
@@ -23,7 +27,11 @@ export default async function Home() {
           <h2 className="text-2xl font-bold text-gray-900">Pipeline</h2>
           <p className="text-gray-500">{leads.length} leads across {PIPELINE_STAGES.length} stages</p>
         </div>
-        <AddLeadButton teamMembers={teamMembers} />
+        <div className="flex items-center gap-2">
+          <ImportButton />
+          <ExportButton leads={leads} />
+          <AddLeadButton teamMembers={teamMembers} />
+        </div>
       </div>
 
       <KanbanBoard

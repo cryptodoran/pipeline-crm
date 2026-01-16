@@ -433,3 +433,73 @@ export async function bulkMoveLeads(leadIds: string[], stage: string) {
 
   revalidatePath('/')
 }
+
+// ============================================================================
+// IMPORT/EXPORT ACTIONS
+// ============================================================================
+
+type ImportLead = {
+  name: string
+  stage?: string
+  telegram?: string
+  twitter?: string
+  farcaster?: string
+  tiktok?: string
+  youtube?: string
+  twitch?: string
+  instagram?: string
+  email?: string
+}
+
+export async function importLeads(leads: ImportLead[]): Promise<{ imported: number; skipped: number }> {
+  let imported = 0
+  let skipped = 0
+
+  // Get existing emails to check for duplicates
+  const existingLeads = await prisma.lead.findMany({
+    where: {
+      email: {
+        in: leads.filter(l => l.email).map(l => l.email as string),
+      },
+    },
+    select: { email: true },
+  })
+  const existingEmails = new Set(existingLeads.map(l => l.email?.toLowerCase()))
+
+  for (const lead of leads) {
+    // Skip if email already exists
+    if (lead.email && existingEmails.has(lead.email.toLowerCase())) {
+      skipped++
+      continue
+    }
+
+    // Validate stage or default to NEW
+    const validStages = ['NEW', 'CONTACTED', 'ENGAGED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST']
+    const stage = lead.stage?.toUpperCase()
+    const finalStage = stage && validStages.includes(stage) ? stage : 'NEW'
+
+    await prisma.lead.create({
+      data: {
+        name: lead.name,
+        stage: finalStage,
+        telegram: lead.telegram || null,
+        twitter: lead.twitter || null,
+        farcaster: lead.farcaster || null,
+        tiktok: lead.tiktok || null,
+        youtube: lead.youtube || null,
+        twitch: lead.twitch || null,
+        instagram: lead.instagram || null,
+        email: lead.email || null,
+      },
+    })
+    imported++
+
+    // Add email to set to prevent duplicates within same import
+    if (lead.email) {
+      existingEmails.add(lead.email.toLowerCase())
+    }
+  }
+
+  revalidatePath('/')
+  return { imported, skipped }
+}
