@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function SettingsPage() {
   await requireAuth()
   const settings = await getNotificationSettings()
-  const slackLocked = isSlackWebhookLocked()
+  const slackLocked = await isSlackWebhookLocked()
 
   return (
     <div className="p-6 max-w-4xl mx-auto">

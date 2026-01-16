@@ -4,7 +4,7 @@ import { prisma } from './db'
 import { revalidatePath } from 'next/cache'
 
 // Check if Slack webhook is configured via environment variable
-export function isSlackWebhookLocked(): boolean {
+export async function isSlackWebhookLocked(): Promise<boolean> {
   return !!process.env.SLACK_WEBHOOK_URL
 }
 
