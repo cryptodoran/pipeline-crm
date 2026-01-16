@@ -3,35 +3,37 @@ import { NextRequest, NextResponse } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Public routes that don't require authentication
-  if (
-    pathname === '/login' ||
-    pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/api/team-members') ||
-    pathname.startsWith('/_next') ||
-    pathname === '/favicon.ico'
-  ) {
+  // Check for auth cookie
+  const authCookie = request.cookies.get('crm-auth')
+  const isAuthenticated = authCookie?.value === 'authenticated'
+
+  // Allow login page and auth API
+  if (pathname === '/login' || pathname.startsWith('/api/auth')) {
+    // If already authenticated, redirect away from login
+    if (pathname === '/login' && isAuthenticated) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
     return NextResponse.next()
   }
 
-  // Check for auth cookie
-  const authCookie = request.cookies.get('crm-auth')
+  // Allow team-members API (needed for identity selection)
+  if (pathname.startsWith('/api/team-members')) {
+    return NextResponse.next()
+  }
 
-  if (!authCookie || authCookie.value !== 'authenticated') {
-    // Not authenticated - redirect to login
+  // Not authenticated - redirect to login
+  if (!isAuthenticated) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // /select-identity only needs auth, not identity
+  // Allow identity selection page
   if (pathname === '/select-identity') {
     return NextResponse.next()
   }
 
   // Check for identity cookie
   const identityCookie = request.cookies.get('crm-user-id')
-
-  if (!identityCookie || !identityCookie.value) {
-    // No identity selected - redirect to identity selection
+  if (!identityCookie?.value) {
     return NextResponse.redirect(new URL('/select-identity', request.url))
   }
 
@@ -40,7 +42,12 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all paths except static files
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
