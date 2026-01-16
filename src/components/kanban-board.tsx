@@ -11,7 +11,6 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { PipelineStage } from '@/lib/types'
 import { updateLeadStage } from '@/lib/actions'
 import { PipelineColumn } from './pipeline-column'
 import { LeadCard } from './lead-card'
@@ -57,12 +56,12 @@ type TeamMember = {
 }
 
 interface KanbanBoardProps {
-  leadsByStage: Record<PipelineStage, Lead[]>
+  leadsByStage: Record<string, Lead[]>
   teamMembers: TeamMember[]
   availableTags?: Tag[]
-  stages: readonly PipelineStage[]
-  stageLabels: Record<PipelineStage, string>
-  stageColors: Record<PipelineStage, string>
+  stages: string[]
+  stageLabels: Record<string, string>
+  stageColors: Record<string, string>
 }
 
 export function KanbanBoard({
@@ -136,7 +135,7 @@ export function KanbanBoard({
   // Filter leads by search query, platform filters, and tags
   const filteredLeadsByStage = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
-    const filtered = {} as Record<PipelineStage, Lead[]>
+    const filtered = {} as Record<string, Lead[]>
 
     for (const stage of stages) {
       filtered[stage] = localLeadsByStage[stage].filter(lead => {
@@ -208,13 +207,13 @@ export function KanbanBoard({
     if (!over) return
 
     const leadId = active.id as string
-    const newStage = over.id as PipelineStage
+    const newStage = over.id as string
 
     // Find current stage
-    let currentStage: PipelineStage | null = null
+    let currentStage: string | null = null
     for (const [stage, leads] of Object.entries(localLeadsByStage)) {
       if (leads.some(lead => lead.id === leadId)) {
-        currentStage = stage as PipelineStage
+        currentStage = stage
         break
       }
     }
@@ -336,6 +335,8 @@ export function KanbanBoard({
             selectedCount={selectedLeadIds.size}
             selectedLeadIds={Array.from(selectedLeadIds)}
             teamMembers={teamMembers}
+            stages={stages}
+            stageLabels={stageLabels}
             onClearSelection={handleClearSelection}
             onSelectAll={handleSelectAll}
             totalLeads={totalFilteredLeads}
@@ -362,9 +363,11 @@ export function KanbanBoard({
               stage={stage}
               label={stageLabels[stage]}
               color={stageColors[stage]}
-              leads={filteredLeadsByStage[stage]}
+              leads={filteredLeadsByStage[stage] || []}
               teamMembers={teamMembers}
               availableTags={availableTags}
+              stages={stages}
+              stageLabels={stageLabels}
               selectionMode={selectionMode}
               selectedLeadIds={selectedLeadIds}
               onSelectionChange={handleSelectionChange}
@@ -375,7 +378,7 @@ export function KanbanBoard({
 
       <DragOverlay>
         {activeLead ? (
-          <LeadCard lead={activeLead} teamMembers={teamMembers} availableTags={availableTags} isDragging />
+          <LeadCard lead={activeLead} teamMembers={teamMembers} availableTags={availableTags} stages={stages} stageLabels={stageLabels} isDragging />
         ) : null}
       </DragOverlay>
 

@@ -89,11 +89,11 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
           Create Tag
         </button>
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 className="font-medium text-gray-900 mb-3">Create New Tag</h3>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4">
+          <h3 className="font-medium text-white mb-3">Create New Tag</h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Name
               </label>
               <input
@@ -101,12 +101,12 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                 value={newTagName}
                 onChange={e => setNewTagName(e.target.value)}
                 placeholder="e.g., VIP, Hot Lead, Partner"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 autoFocus
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Color
               </label>
               <div className="flex flex-wrap gap-2">
@@ -115,7 +115,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                     key={color.value}
                     onClick={() => setNewTagColor(color.value)}
                     className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      newTagColor === color.value ? 'ring-2 ring-offset-2 ring-gray-400' : ''
+                      newTagColor === color.value ? 'ring-2 ring-offset-2 ring-offset-gray-800 ring-gray-400' : ''
                     }`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -141,7 +141,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                   setNewTagName('')
                   setNewTagColor(TAG_COLORS[0].value)
                 }}
-                className="px-4 py-2 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100"
+                className="px-4 py-2 text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-700"
               >
                 Cancel
               </button>
@@ -151,30 +151,30 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
       )}
 
       {/* Tags list */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
         {tags.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-gray-400">
             <p className="text-lg font-medium">No tags yet</p>
             <p className="text-sm">Create your first tag to start categorizing leads</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-750 border-b border-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Tag
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Leads
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-700">
               {tags.map(tag => (
-                <tr key={tag.id} className="hover:bg-gray-50">
+                <tr key={tag.id} className="hover:bg-gray-750">
                   <td className="px-4 py-3">
                     {editingId === tag.id ? (
                       <div className="flex items-center gap-3">
@@ -182,7 +182,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                           type="text"
                           value={editName}
                           onChange={e => setEditName(e.target.value)}
-                          className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                          className="px-2 py-1 border border-gray-600 bg-gray-700 text-white rounded text-sm focus:ring-2 focus:ring-blue-500"
                           autoFocus
                         />
                         <div className="flex gap-1">
@@ -191,7 +191,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                               key={color.value}
                               onClick={() => setEditColor(color.value)}
                               className={`w-6 h-6 rounded-full ${
-                                editColor === color.value ? 'ring-2 ring-offset-1 ring-gray-400' : ''
+                                editColor === color.value ? 'ring-2 ring-offset-1 ring-offset-gray-800 ring-gray-400' : ''
                               }`}
                               style={{ backgroundColor: color.value }}
                             />
@@ -207,7 +207,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-400">
                     {tag._count?.leads || 0} lead{(tag._count?.leads || 0) !== 1 ? 's' : ''}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -216,20 +216,20 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                         <button
                           onClick={() => handleSaveEdit(tag.id)}
                           disabled={isPending}
-                          className="p-1 text-green-600 hover:bg-green-50 rounded"
+                          className="p-1 text-green-400 hover:bg-gray-700 rounded"
                         >
                           <Check className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
-                          className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                          className="p-1 text-gray-400 hover:bg-gray-700 rounded"
                         >
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                     ) : deleteConfirmId === tag.id ? (
                       <div className="flex items-center justify-end gap-2">
-                        <span className="text-sm text-red-600">Delete?</span>
+                        <span className="text-sm text-red-400">Delete?</span>
                         <button
                           onClick={() => handleDelete(tag.id)}
                           disabled={isPending}
@@ -239,7 +239,7 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(null)}
-                          className="px-2 py-1 text-gray-600 text-xs font-medium"
+                          className="px-2 py-1 text-gray-400 text-xs font-medium hover:bg-gray-700 rounded"
                         >
                           No
                         </button>
@@ -248,14 +248,14 @@ export function TagsManager({ initialTags }: TagsManagerProps) {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEdit(tag)}
-                          className="p-1 text-gray-500 hover:bg-gray-100 rounded"
+                          className="p-1 text-gray-400 hover:bg-gray-700 rounded"
                           title="Edit tag"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => setDeleteConfirmId(tag.id)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded"
+                          className="p-1 text-red-400 hover:bg-gray-700 rounded"
                           title="Delete tag"
                         >
                           <Trash2 className="h-4 w-4" />

@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Trash2, ExternalLink, Clock } from 'lucide-react'
-import { SOCIAL_URLS, SocialPlatform, PIPELINE_STAGES, STAGE_LABELS, PipelineStage } from '@/lib/types'
-import { updateLead, deleteLead, addNote, assignLead, updateLeadStage } from '@/lib/actions'
+import { X, Trash2, ExternalLink, Clock, Edit2, Save } from 'lucide-react'
+import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
+import { updateLead, deleteLead, addNote, assignLead, updateLeadStage, archiveLead } from '@/lib/actions'
 import { TagInput } from './tag-input'
 import { ReminderForm } from './reminder-form'
+import { QuickActions } from './quick-actions'
+import { toast } from 'sonner'
 
 type Tag = {
   id: string
@@ -45,6 +47,8 @@ interface LeadDetailModalProps {
   lead: Lead
   teamMembers: TeamMember[]
   availableTags?: Tag[]
+  stages?: string[]
+  stageLabels?: Record<string, string>
   isOpen: boolean
   onClose: () => void
 }
@@ -53,6 +57,8 @@ export function LeadDetailModal({
   lead,
   teamMembers,
   availableTags = [],
+  stages = [],
+  stageLabels = {},
   isOpen,
   onClose,
 }: LeadDetailModalProps) {
@@ -60,10 +66,22 @@ export function LeadDetailModal({
   const [noteContent, setNoteContent] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showReminderForm, setShowReminderForm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState({
+    name: lead.name,
+    telegram: lead.telegram || '',
+    twitter: lead.twitter || '',
+    farcaster: lead.farcaster || '',
+    tiktok: lead.tiktok || '',
+    youtube: lead.youtube || '',
+    twitch: lead.twitch || '',
+    instagram: lead.instagram || '',
+    email: lead.email || '',
+  })
 
   if (!isOpen) return null
 
-  const handleStageChange = (newStage: PipelineStage) => {
+  const handleStageChange = (newStage: string) => {
     startTransition(async () => {
       await updateLeadStage(lead.id, newStage)
     })
@@ -90,7 +108,38 @@ export function LeadDetailModal({
   const handleDelete = () => {
     startTransition(async () => {
       await deleteLead(lead.id)
+      toast.success('Lead deleted')
       onClose()
+    })
+  }
+
+  const handleArchive = () => {
+    startTransition(async () => {
+      await archiveLead(lead.id)
+      toast.success('Lead archived')
+      onClose()
+    })
+  }
+
+  const handleSaveEdit = () => {
+    if (!editForm.name.trim()) {
+      toast.error('Name is required')
+      return
+    }
+    startTransition(async () => {
+      await updateLead(lead.id, {
+        name: editForm.name,
+        telegram: editForm.telegram || undefined,
+        twitter: editForm.twitter || undefined,
+        farcaster: editForm.farcaster || undefined,
+        tiktok: editForm.tiktok || undefined,
+        youtube: editForm.youtube || undefined,
+        twitch: editForm.twitch || undefined,
+        instagram: editForm.instagram || undefined,
+        email: editForm.email || undefined,
+      })
+      toast.success('Lead updated')
+      setIsEditing(false)
     })
   }
 
@@ -105,26 +154,64 @@ export function LeadDetailModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
         {/* Header */}
-        <div className="flex justify-between items-start p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{lead.name}</h2>
-            <p className="text-sm text-gray-500 mt-1">
+        <div className="flex justify-between items-start p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex-1">
+            {isEditing ? (
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="text-xl font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-blue-500 focus:outline-none w-full"
+                autoFocus
+              />
+            ) : (
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{lead.name}</h2>
+            )}
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Created {new Date(lead.notes[lead.notes.length - 1]?.createdAt || Date.now()).toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowReminderForm(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm font-medium"
-            >
-              <Clock className="w-4 h-4" />
-              Set Reminder
-            </button>
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={isPending}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-3 py-1.5 text-gray-600 dark:text-gray-300 text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => setShowReminderForm(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 text-sm font-medium"
+                >
+                  <Clock className="w-4 h-4" />
+                  Reminder
+                </button>
+              </>
+            )}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <X className="w-6 h-6" />
             </button>
@@ -140,13 +227,13 @@ export function LeadDetailModal({
             </label>
             <select
               value={lead.stage}
-              onChange={e => handleStageChange(e.target.value as PipelineStage)}
+              onChange={e => handleStageChange(e.target.value)}
               disabled={isPending}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {PIPELINE_STAGES.map(stage => (
+              {stages.map(stage => (
                 <option key={stage} value={stage}>
-                  {STAGE_LABELS[stage]}
+                  {stageLabels[stage] || stage}
                 </option>
               ))}
             </select>
@@ -181,33 +268,62 @@ export function LeadDetailModal({
 
           {/* Social handles */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Social Presence
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {socialPlatforms.map(platform => {
-                const handle = lead[platform]
-                if (!handle) return null
+            {isEditing ? (
+              <div className="grid grid-cols-2 gap-3">
+                {socialPlatforms.map(platform => (
+                  <div key={platform}>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1 capitalize">{platform}</label>
+                    <input
+                      type={platform === 'email' ? 'email' : 'text'}
+                      value={editForm[platform]}
+                      onChange={(e) => setEditForm({ ...editForm, [platform]: e.target.value })}
+                      placeholder={platform === 'email' ? 'email@example.com' : `@${platform}`}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  {socialPlatforms.map(platform => {
+                    const handle = lead[platform]
+                    if (!handle) return null
 
-                return (
-                  <a
-                    key={platform}
-                    href={SOCIAL_URLS[platform](handle)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-sm"
-                  >
-                    <span className="capitalize font-medium text-gray-700">{platform}</span>
-                    <span className="text-gray-500 truncate">{handle}</span>
+                    return (
+                      <a
+                        key={platform}
+                        href={SOCIAL_URLS[platform](handle)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm"
+                      >
+                    <span className="capitalize font-medium text-gray-700 dark:text-gray-200">{platform}</span>
+                    <span className="text-gray-500 dark:text-gray-400 truncate">{handle}</span>
                     <ExternalLink className="w-3 h-3 text-gray-400 ml-auto flex-shrink-0" />
                   </a>
                 )
               })}
             </div>
             {!socialPlatforms.some(p => lead[p]) && (
-              <p className="text-sm text-gray-400">No social handles added</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">No social handles added</p>
+            )}
+              </>
             )}
           </div>
+
+          {/* Quick Actions */}
+          {!isEditing && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Quick Actions
+              </label>
+              <QuickActions leadId={lead.id} leadName={lead.name} />
+            </div>
+          )}
 
           {/* Notes section */}
           <div>
@@ -254,10 +370,10 @@ export function LeadDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex justify-between items-center p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           {showDeleteConfirm ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm text-red-600">Delete this lead?</span>
+              <span className="text-sm text-red-600 dark:text-red-400">Delete this lead?</span>
               <button
                 onClick={handleDelete}
                 disabled={isPending}
@@ -267,23 +383,32 @@ export function LeadDetailModal({
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 text-gray-600 text-sm font-medium"
+                className="px-3 py-1.5 text-gray-600 dark:text-gray-300 text-sm font-medium"
               >
                 Cancel
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 text-sm"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Lead
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleArchive}
+                disabled={isPending}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm"
+              >
+                Archive
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </div>
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
           >
             Close
           </button>

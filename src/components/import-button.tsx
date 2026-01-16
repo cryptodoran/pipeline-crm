@@ -180,10 +180,10 @@ export function ImportButton({ onImportComplete }: ImportButtonProps) {
       {/* Import Preview Modal */}
       {isOpen && preview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold">Import Preview</h3>
-              <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+          <div className="bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h3 className="text-lg font-semibold text-white">Import Preview</h3>
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-200">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -191,38 +191,38 @@ export function ImportButton({ onImportComplete }: ImportButtonProps) {
             <div className="p-4 overflow-y-auto max-h-[60vh]">
               {/* Summary */}
               <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 text-green-700">
+                <div className="bg-green-900/30 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-400">
                     <CheckCircle className="w-4 h-4" />
                     <span className="font-medium">{preview.leads.length}</span>
                   </div>
-                  <p className="text-sm text-green-600">Ready to import</p>
+                  <p className="text-sm text-green-500">Ready to import</p>
                 </div>
                 {preview.duplicates.length > 0 && (
-                  <div className="bg-yellow-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2 text-yellow-700">
+                  <div className="bg-yellow-900/30 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 text-yellow-400">
                       <AlertCircle className="w-4 h-4" />
                       <span className="font-medium">{preview.duplicates.length}</span>
                     </div>
-                    <p className="text-sm text-yellow-600">Duplicate emails</p>
+                    <p className="text-sm text-yellow-500">Duplicate emails</p>
                   </div>
                 )}
                 {preview.errors.length > 0 && (
-                  <div className="bg-red-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2 text-red-700">
+                  <div className="bg-red-900/30 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 text-red-400">
                       <AlertCircle className="w-4 h-4" />
                       <span className="font-medium">{preview.errors.length}</span>
                     </div>
-                    <p className="text-sm text-red-600">Errors</p>
+                    <p className="text-sm text-red-500">Errors</p>
                   </div>
                 )}
               </div>
 
               {/* Errors */}
               {preview.errors.length > 0 && (
-                <div className="mb-4 p-3 bg-red-50 rounded-lg">
-                  <p className="text-sm font-medium text-red-700 mb-2">Errors:</p>
-                  <ul className="text-sm text-red-600 space-y-1">
+                <div className="mb-4 p-3 bg-red-900/30 rounded-lg">
+                  <p className="text-sm font-medium text-red-400 mb-2">Errors:</p>
+                  <ul className="text-sm text-red-500 space-y-1">
                     {preview.errors.slice(0, 5).map((error, i) => (
                       <li key={i}>{error}</li>
                     ))}
@@ -235,23 +235,23 @@ export function ImportButton({ onImportComplete }: ImportButtonProps) {
 
               {/* Preview Table */}
               {preview.leads.length > 0 && (
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border border-gray-700 rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-750">
                       <tr>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700">Name</th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700">Email</th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700">Stage</th>
-                        <th className="px-3 py-2 text-left font-medium text-gray-700">Socials</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-300">Name</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-300">Email</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-300">Stage</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-300">Socials</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y">
+                    <tbody className="divide-y divide-gray-700">
                       {preview.leads.slice(0, 10).map((lead, i) => (
                         <tr key={i}>
-                          <td className="px-3 py-2">{lead.name}</td>
-                          <td className="px-3 py-2 text-gray-500">{lead.email || '-'}</td>
-                          <td className="px-3 py-2 text-gray-500">{lead.stage || 'NEW'}</td>
-                          <td className="px-3 py-2 text-gray-500">
+                          <td className="px-3 py-2 text-white">{lead.name}</td>
+                          <td className="px-3 py-2 text-gray-400">{lead.email || '-'}</td>
+                          <td className="px-3 py-2 text-gray-400">{lead.stage || 'NEW'}</td>
+                          <td className="px-3 py-2 text-gray-400">
                             {[lead.twitter, lead.telegram, lead.instagram].filter(Boolean).length || 0} connected
                           </td>
                         </tr>
@@ -259,7 +259,7 @@ export function ImportButton({ onImportComplete }: ImportButtonProps) {
                     </tbody>
                   </table>
                   {preview.leads.length > 10 && (
-                    <div className="px-3 py-2 bg-gray-50 text-sm text-gray-500">
+                    <div className="px-3 py-2 bg-gray-750 text-sm text-gray-400">
                       ...and {preview.leads.length - 10} more leads
                     </div>
                   )}
@@ -267,10 +267,10 @@ export function ImportButton({ onImportComplete }: ImportButtonProps) {
               )}
             </div>
 
-            <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
+            <div className="flex justify-end gap-3 p-4 border-t border-gray-700 bg-gray-750">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>

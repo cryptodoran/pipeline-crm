@@ -85,7 +85,7 @@ export async function updateLead(
   return lead
 }
 
-export async function updateLeadStage(id: string, stage: PipelineStage) {
+export async function updateLeadStage(id: string, stage: string) {
   const lead = await prisma.lead.update({
     where: { id },
     data: { stage },

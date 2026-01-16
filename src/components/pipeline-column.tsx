@@ -1,7 +1,6 @@
 'use client'
 
 import { useDroppable } from '@dnd-kit/core'
-import { PipelineStage } from '@/lib/types'
 import { LeadCard } from './lead-card'
 
 type Tag = {
@@ -40,12 +39,14 @@ type TeamMember = {
 }
 
 interface PipelineColumnProps {
-  stage: PipelineStage
+  stage: string
   label: string
   color: string
   leads: Lead[]
   teamMembers: TeamMember[]
   availableTags?: Tag[]
+  stages?: string[]
+  stageLabels?: Record<string, string>
   selectionMode?: boolean
   selectedLeadIds?: Set<string>
   onSelectionChange?: (leadId: string, selected: boolean) => void
@@ -58,6 +59,8 @@ export function PipelineColumn({
   leads,
   teamMembers,
   availableTags = [],
+  stages = [],
+  stageLabels = {},
   selectionMode = false,
   selectedLeadIds = new Set(),
   onSelectionChange,
@@ -95,6 +98,8 @@ export function PipelineColumn({
               lead={lead}
               teamMembers={teamMembers}
               availableTags={availableTags}
+              stages={stages}
+              stageLabels={stageLabels}
               selectionMode={selectionMode}
               isSelected={selectedLeadIds.has(lead.id)}
               onSelectionChange={onSelectionChange}

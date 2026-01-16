@@ -21,6 +21,7 @@ export type CreateDealInput = {
   homeTokenThreshold?: string
   purportedVolume?: string
   volumePeriod?: string
+  contractLink?: string
   executedDate?: Date
   status?: string
   notes?: string
@@ -43,6 +44,7 @@ export async function createDeal(data: CreateDealInput) {
       homeTokenThreshold: data.homeTokenThreshold || null,
       purportedVolume: data.purportedVolume || null,
       volumePeriod: data.volumePeriod || null,
+      contractLink: data.contractLink || null,
       executedDate: data.executedDate || null,
       status: data.status || 'ACTIVE',
       notes: data.notes || null,
@@ -69,6 +71,7 @@ export async function updateDeal(id: string, data: Partial<CreateDealInput>) {
   if (data.homeTokenThreshold !== undefined) updateData.homeTokenThreshold = data.homeTokenThreshold || null
   if (data.purportedVolume !== undefined) updateData.purportedVolume = data.purportedVolume || null
   if (data.volumePeriod !== undefined) updateData.volumePeriod = data.volumePeriod || null
+  if (data.contractLink !== undefined) updateData.contractLink = data.contractLink || null
   if (data.executedDate !== undefined) updateData.executedDate = data.executedDate || null
   if (data.status !== undefined) updateData.status = data.status
   if (data.notes !== undefined) updateData.notes = data.notes || null

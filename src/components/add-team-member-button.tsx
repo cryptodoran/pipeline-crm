@@ -39,18 +39,18 @@ export function AddTeamMemberButton() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
 
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Add Team Member</h2>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="relative bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4">
+            <div className="flex justify-between items-center p-6 border-b border-gray-700">
+              <h2 className="text-xl font-bold text-white">Add Team Member</h2>
+              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-300">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -58,13 +58,13 @@ export function AddTeamMemberButton() {
                   onChange={e => setName(e.target.value)}
                   placeholder="Team member name"
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-700 text-white placeholder-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Email <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="email"
@@ -72,7 +72,7 @@ export function AddTeamMemberButton() {
                   onChange={e => setEmail(e.target.value)}
                   placeholder="team@example.com"
                   required
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-700 text-white placeholder-gray-400 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -80,7 +80,7 @@ export function AddTeamMemberButton() {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-gray-700 font-medium rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 text-gray-300 font-medium rounded-lg hover:bg-gray-700"
                 >
                   Cancel
                 </button>

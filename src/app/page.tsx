@@ -1,33 +1,39 @@
 import { getLeads, getTeamMembers, getTags } from '@/lib/actions'
-import { PIPELINE_STAGES, STAGE_LABELS, STAGE_COLORS, PipelineStage } from '@/lib/types'
+import { getStagesConfig, getStages } from '@/lib/stage-actions'
 import { KanbanBoard } from '@/components/kanban-board'
 import { AddLeadButton } from '@/components/add-lead-button'
 import { ExportButton } from '@/components/export-button'
 import { ImportButton } from '@/components/import-button'
+import { StageSettings } from '@/components/stage-settings'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const [leads, teamMembers, tags] = await Promise.all([
+  const [leads, teamMembers, tags, stagesConfig, stagesData] = await Promise.all([
     getLeads(),
     getTeamMembers(),
     getTags(),
+    getStagesConfig(),
+    getStages(),
   ])
 
+  const { stages, stageLabels, stageColors } = stagesConfig
+
   // Group leads by stage
-  const leadsByStage = PIPELINE_STAGES.reduce((acc, stage) => {
+  const leadsByStage = stages.reduce((acc, stage) => {
     acc[stage] = leads.filter(lead => lead.stage === stage)
     return acc
-  }, {} as Record<PipelineStage, typeof leads>)
+  }, {} as Record<string, typeof leads>)
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Pipeline</h2>
-          <p className="text-gray-500">{leads.length} leads across {PIPELINE_STAGES.length} stages</p>
+          <h2 className="text-2xl font-bold text-white">Pipeline</h2>
+          <p className="text-gray-400">{leads.length} leads across {stages.length} stages</p>
         </div>
         <div className="flex items-center gap-2">
+          <StageSettings stages={stagesData} />
           <ImportButton />
           <ExportButton leads={leads} />
           <AddLeadButton teamMembers={teamMembers} />
@@ -38,9 +44,9 @@ export default async function Home() {
         leadsByStage={leadsByStage}
         teamMembers={teamMembers}
         availableTags={tags}
-        stages={PIPELINE_STAGES}
-        stageLabels={STAGE_LABELS}
-        stageColors={STAGE_COLORS}
+        stages={stages}
+        stageLabels={stageLabels}
+        stageColors={stageColors}
       />
     </div>
   )

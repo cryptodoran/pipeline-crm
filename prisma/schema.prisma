@@ -138,6 +138,7 @@ model Deal {
   volumePeriod          String?  // "monthly" or "annual"
   
   // Contract details
+  contractLink      String?    // Link to the contract document
   executedDate      DateTime?  // When the deal was signed
   status            String     @default("ACTIVE") // ACTIVE, PAUSED, TERMINATED
   notes             String?    // General notes
@@ -178,4 +179,18 @@ model Activity {
   authorId    String?
   author      TeamMember? @relation(fields: [authorId], references: [id])
   createdAt   DateTime  @default(now())
+}
+
+// Custom pipeline stages
+model PipelineStage {
+  id        String   @id @default(cuid())
+  name      String   // Display name (e.g., "New Lead")
+  key       String   @unique // Internal key (e.g., "NEW")
+  color     String   @default("bg-blue-500") // Tailwind color class
+  order     Int      // Sort order (0, 1, 2, ...)
+  isDefault Boolean  @default(false) // Is this the default stage for new leads?
+  isWon     Boolean  @default(false) // Is this a "won" stage?
+  isLost    Boolean  @default(false) // Is this a "lost" stage?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

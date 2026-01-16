@@ -36,6 +36,7 @@ type Deal = {
   homeTokenThreshold: string | null
   purportedVolume: string | null
   volumePeriod: string | null
+  contractLink: string | null
   executedDate: Date | null
   status: string
   notes: string | null
@@ -75,6 +76,7 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
     homeTokenThreshold: '',
     purportedVolume: '',
     volumePeriod: 'monthly',
+    contractLink: '',
     executedDate: undefined,
     status: 'ACTIVE',
     notes: '',
@@ -102,6 +104,7 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
       homeTokenThreshold: '',
       purportedVolume: '',
       volumePeriod: 'monthly',
+      contractLink: '',
       executedDate: undefined,
       status: 'ACTIVE',
       notes: '',
@@ -124,6 +127,7 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
       homeTokenThreshold: deal.homeTokenThreshold || '',
       purportedVolume: deal.purportedVolume || '',
       volumePeriod: deal.volumePeriod || 'monthly',
+      contractLink: deal.contractLink || '',
       executedDate: deal.executedDate || undefined,
       status: deal.status,
       notes: deal.notes || '',
@@ -354,6 +358,18 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
                         Signed {new Date(deal.executedDate).toLocaleDateString()}
                       </span>
                     )}
+                    {deal.contractLink && (
+                      <a
+                        href={deal.contractLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Contract
+                      </a>
+                    )}
                   </div>
                 </div>
 
@@ -408,6 +424,22 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
                           <p>Next Due: {deal.nextPaymentDue ? new Date(deal.nextPaymentDue).toLocaleDateString() : '-'}</p>
                         </div>
                       </div>
+
+                      {/* Contract */}
+                      {deal.contractLink && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">Contract</h4>
+                          <a
+                            href={deal.contractLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            View Contract
+                          </a>
+                        </div>
+                      )}
 
                       {/* Notes */}
                       {deal.notes && (
@@ -657,6 +689,16 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
                       <option value="monthly">Monthly</option>
                       <option value="annual">Annual</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contract Link</label>
+                    <input
+                      type="url"
+                      value={formData.contractLink}
+                      onChange={(e) => setFormData({ ...formData, contractLink: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Executed Date</label>

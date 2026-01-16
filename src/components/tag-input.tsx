@@ -102,7 +102,7 @@ export function TagInput({ leadId, selectedTags, availableTags, onTagsChange }: 
             {tag.name}
             <button
               onClick={() => handleRemoveTag(tag.id)}
-              className="hover:bg-black/10 rounded-full p-0.5"
+              className="hover:bg-white/20 rounded-full p-0.5"
             >
               <X className="h-3 w-3" />
             </button>
@@ -113,7 +113,7 @@ export function TagInput({ leadId, selectedTags, availableTags, onTagsChange }: 
             setIsOpen(true)
             setTimeout(() => inputRef.current?.focus(), 0)
           }}
-          className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-500 border border-dashed border-gray-300 rounded-full hover:border-gray-400 hover:text-gray-600"
+          className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 border border-dashed border-gray-600 rounded-full hover:border-gray-500 hover:text-gray-300"
         >
           <Plus className="h-3 w-3" />
           Add tag
@@ -128,7 +128,7 @@ export function TagInput({ leadId, selectedTags, availableTags, onTagsChange }: 
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search or create tag..."
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 text-sm border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
             onKeyDown={e => {
               if (e.key === 'Enter' && canCreateNew) {
                 e.preventDefault()
@@ -137,12 +137,12 @@ export function TagInput({ leadId, selectedTags, availableTags, onTagsChange }: 
             }}
           />
           {(filteredTags.length > 0 || canCreateNew) && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
               {filteredTags.map(tag => (
                 <button
                   key={tag.id}
                   onClick={() => handleAddTag(tag)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-gray-50"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-200 text-left hover:bg-gray-700"
                 >
                   <span
                     className="w-3 h-3 rounded-full"
@@ -155,7 +155,7 @@ export function TagInput({ leadId, selectedTags, availableTags, onTagsChange }: 
                 <button
                   onClick={handleCreateTag}
                   disabled={isCreating}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-blue-600 hover:bg-blue-50 border-t border-gray-100"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left text-blue-400 hover:bg-gray-700 border-t border-gray-700"
                 >
                   <Plus className="h-4 w-4" />
                   Create &quot;{search}&quot;

@@ -63,35 +63,35 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex justify-between items-center hover:shadow-sm transition-shadow">
+      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 flex justify-between items-center hover:bg-gray-750 transition-colors">
         {isEditing ? (
           <div className="flex-1 space-y-2 mr-4">
             <input
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Name"
             />
             <input
               type="email"
               value={editEmail}
               onChange={(e) => setEditEmail(e.target.value)}
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Email"
             />
           </div>
         ) : (
           <div>
-            <h3 className="font-medium text-gray-900">{member.name}</h3>
-            <p className="text-sm text-gray-500">{member.email}</p>
+            <h3 className="font-medium text-white">{member.name}</h3>
+            <p className="text-sm text-gray-400">{member.email}</p>
           </div>
         )}
         
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900">{member._count.leads}</div>
-            <div className="text-sm text-gray-500">leads assigned</div>
+            <div className="text-2xl font-bold text-white">{member._count.leads}</div>
+            <div className="text-sm text-gray-400">leads assigned</div>
           </div>
           
           <div className="flex items-center gap-1">
@@ -100,14 +100,14 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
                 <button
                   onClick={handleSaveEdit}
                   disabled={isPending}
-                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                  className="p-2 text-green-400 hover:bg-green-900/30 rounded-lg transition-colors"
                   title="Save"
                 >
                   <Check className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 text-gray-400 hover:bg-gray-700 rounded-lg transition-colors"
                   title="Cancel"
                 >
                   <X className="w-4 h-4" />
@@ -117,14 +117,14 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
               <>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-900/30 rounded-lg transition-colors"
                   title="Edit"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors"
                   title="Delete"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -138,32 +138,32 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="p-2 bg-red-900/30 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Delete Team Member</h3>
+              <h3 className="text-lg font-semibold text-white">Delete Team Member</h3>
             </div>
             
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-300 mb-2">
               Are you sure you want to delete <strong>{member.name}</strong>?
             </p>
             
             {member._count.leads > 0 && (
-              <p className="text-amber-600 text-sm mb-4 p-3 bg-amber-50 rounded-lg">
+              <p className="text-amber-400 text-sm mb-4 p-3 bg-amber-900/30 rounded-lg">
                 ⚠️ This will unassign {member._count.leads} lead{member._count.leads > 1 ? 's' : ''} currently assigned to this team member.
               </p>
             )}
             
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-400 text-sm mb-6">
               This action cannot be undone. Any notes authored by this team member will also be deleted.
             </p>
             
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>

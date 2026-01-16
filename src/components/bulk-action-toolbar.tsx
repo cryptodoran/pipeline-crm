@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import { X, Users, ArrowRight, CheckSquare, Undo2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { PipelineStage, PIPELINE_STAGES, STAGE_LABELS } from '@/lib/types'
 import { bulkAssignLeads, bulkMoveLeads } from '@/lib/actions'
 
 type TeamMember = {
@@ -16,6 +15,8 @@ interface BulkActionToolbarProps {
   selectedCount: number
   selectedLeadIds: string[]
   teamMembers: TeamMember[]
+  stages?: string[]
+  stageLabels?: Record<string, string>
   onClearSelection: () => void
   onSelectAll: () => void
   totalLeads: number
@@ -25,6 +26,8 @@ export function BulkActionToolbar({
   selectedCount,
   selectedLeadIds,
   teamMembers,
+  stages = [],
+  stageLabels = {},
   onClearSelection,
   onSelectAll,
   totalLeads,
@@ -65,7 +68,7 @@ export function BulkActionToolbar({
     })
   }
 
-  const handleMove = (stage: PipelineStage) => {
+  const handleMove = (stage: string) => {
     const leadIds = [...selectedLeadIds]
     startTransition(async () => {
       try {
@@ -73,7 +76,7 @@ export function BulkActionToolbar({
         setShowMoveDropdown(false)
         onClearSelection()
         
-        toast.success(`${leadIds.length} lead${leadIds.length !== 1 ? 's' : ''} moved to ${STAGE_LABELS[stage]}`, {
+        toast.success(`${leadIds.length} lead${leadIds.length !== 1 ? 's' : ''} moved to ${stageLabels[stage] || stage}`, {
           action: {
             label: 'Undo',
             onClick: () => handleUndoMove(leadIds),
@@ -147,19 +150,19 @@ export function BulkActionToolbar({
           </button>
 
           {showAssignDropdown && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+            <div className="absolute right-0 top-full mt-1 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-600 py-1 z-50">
               <button
                 onClick={() => handleAssign(null, undefined)}
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                className="block w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700"
               >
                 Unassign
               </button>
-              <div className="border-t border-gray-100 my-1" />
+              <div className="border-t border-gray-700 my-1" />
               {teamMembers.map(member => (
                 <button
                   key={member.id}
                   onClick={() => handleAssign(member.id, member.name)}
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700"
                 >
                   {member.name}
                 </button>
@@ -183,14 +186,14 @@ export function BulkActionToolbar({
           </button>
 
           {showMoveDropdown && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
-              {PIPELINE_STAGES.map(stage => (
+            <div className="absolute right-0 top-full mt-1 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-600 py-1 z-50">
+              {stages.map(stage => (
                 <button
                   key={stage}
                   onClick={() => handleMove(stage)}
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-700"
                 >
-                  {STAGE_LABELS[stage]}
+                  {stageLabels[stage] || stage}
                 </button>
               ))}
             </div>

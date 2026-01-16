@@ -110,8 +110,8 @@ export function FilterDropdown({
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
           totalFilters > 0
-            ? 'border-blue-500 bg-blue-50 text-blue-700'
-            : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+            ? 'border-blue-500 bg-blue-900/30 text-blue-400'
+            : 'border-gray-600 hover:bg-gray-700 text-gray-300'
         }`}
       >
         <Filter className="h-4 w-4" />
@@ -125,12 +125,12 @@ export function FilterDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 w-64 bg-gray-800 border border-gray-600 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
           <div className="p-2">
             {/* Tags Section */}
             {availableTags.length > 0 && (
               <>
-                <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 uppercase tracking-wide">
+                <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-400 uppercase tracking-wide">
                   <span className="flex items-center gap-1">
                     <TagIcon className="h-3 w-3" />
                     Tags
@@ -140,33 +140,33 @@ export function FilterDropdown({
                   {availableTags.map(tag => (
                     <label
                       key={tag.id}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer"
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-700 cursor-pointer"
                     >
                       <input
                         type="checkbox"
                         checked={selectedTagIds.includes(tag.id)}
                         onChange={() => toggleTag(tag.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
                       />
                       <span
                         className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: tag.color }}
                       />
-                      <span className="text-sm text-gray-700 truncate">{tag.name}</span>
+                      <span className="text-sm text-gray-200 truncate">{tag.name}</span>
                     </label>
                   ))}
                 </div>
-                <div className="border-t border-gray-100 my-2" />
+                <div className="border-t border-gray-700 my-2" />
               </>
             )}
 
             {/* Platforms Section */}
-            <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 uppercase tracking-wide">
+            <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-400 uppercase tracking-wide">
               <span>Platforms</span>
               {totalFilters > 0 && (
                 <button
                   onClick={clearAll}
-                  className="text-blue-500 hover:text-blue-700 normal-case"
+                  className="text-blue-400 hover:text-blue-300 normal-case"
                 >
                   Clear all
                 </button>
@@ -176,37 +176,37 @@ export function FilterDropdown({
               {FILTER_OPTIONS.map(option => (
                 <label
                   key={option.value}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-700 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={selectedFilters.includes(option.value)}
                     onChange={() => toggleFilter(option.value)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">{option.label}</span>
+                  <span className="text-sm text-gray-200">{option.label}</span>
                 </label>
               ))}
             </div>
 
             {/* Sources Section */}
-            <div className="border-t border-gray-100 my-2" />
-            <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 uppercase tracking-wide">
+            <div className="border-t border-gray-700 my-2" />
+            <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-400 uppercase tracking-wide">
               <span>Sources</span>
             </div>
             <div className="mt-1 space-y-0.5">
               {LEAD_SOURCES.map(source => (
                 <label
                   key={source}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-700 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={selectedSources.includes(source)}
                     onChange={() => toggleSource(source)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">{source}</span>
+                  <span className="text-sm text-gray-200">{source}</span>
                 </label>
               ))}
             </div>

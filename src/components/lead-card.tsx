@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { SOCIAL_URLS, SocialPlatform, SOURCE_COLORS } from '@/lib/types'
 import { LeadDetailModal } from './lead-detail-modal'
 import { TagPills } from './tag-input'
-import { QuickActionsCompact } from './quick-actions'
 import {
   MessageCircle,
   Twitter,
@@ -70,6 +69,8 @@ interface LeadCardProps {
   lead: Lead
   teamMembers: TeamMember[]
   availableTags?: Tag[]
+  stages?: string[]
+  stageLabels?: Record<string, string>
   isDragging?: boolean
   selectionMode?: boolean
   isSelected?: boolean
@@ -91,6 +92,8 @@ export function LeadCard({
   lead,
   teamMembers,
   availableTags = [],
+  stages = [],
+  stageLabels = {},
   isDragging,
   selectionMode = false,
   isSelected = false,
@@ -246,17 +249,14 @@ export function LeadCard({
             <span>{lead.notes.length} note{lead.notes.length !== 1 ? 's' : ''}</span>
           )}
         </div>
-
-        {/* Quick Actions */}
-        <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-          <QuickActionsCompact leadId={lead.id} leadName={lead.name} />
-        </div>
       </div>
 
       <LeadDetailModal
         lead={lead}
         teamMembers={teamMembers}
         availableTags={availableTags}
+        stages={stages}
+        stageLabels={stageLabels}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
