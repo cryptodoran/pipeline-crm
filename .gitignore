@@ -40,6 +40,7 @@ logs/*.log
 .claude_session_id
 .exit_signals
 .last_reset
+.ralph_runtime_tracker
 .ralph_session
 .response_analysis
 status.json
