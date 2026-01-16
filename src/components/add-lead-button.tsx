@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Plus, X } from 'lucide-react'
 import { createLead } from '@/lib/actions'
+import { LEAD_SOURCES } from '@/lib/types'
 
 type TeamMember = {
   id: string
@@ -29,6 +30,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
     instagram: '',
     email: '',
     assigneeId: '',
+    source: '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -47,6 +49,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
         instagram: formData.instagram.trim() || undefined,
         email: formData.email.trim() || undefined,
         assigneeId: formData.assigneeId || undefined,
+        source: formData.source || undefined,
       })
       setFormData({
         name: '',
@@ -59,6 +62,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
         instagram: '',
         email: '',
         assigneeId: '',
+        source: '',
       })
       setIsOpen(false)
     })
@@ -182,6 +186,25 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
                   {teamMembers.map(member => (
                     <option key={member.id} value={member.id}>
                       {member.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Source */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Source (optional)
+                </label>
+                <select
+                  value={formData.source}
+                  onChange={e => setFormData({ ...formData, source: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select source...</option>
+                  {LEAD_SOURCES.map(source => (
+                    <option key={source} value={source}>
+                      {source}
                     </option>
                   ))}
                 </select>

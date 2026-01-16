@@ -47,3 +47,28 @@ export const SOCIAL_URLS = {
 } as const
 
 export type SocialPlatform = keyof typeof SOCIAL_URLS
+
+// Lead sources - where leads come from
+export const LEAD_SOURCES = [
+  'Website',
+  'Referral',
+  'Social Media',
+  'Cold Outreach',
+  'Event',
+  'Inbound',
+  'Partner',
+  'Other',
+] as const
+
+export type LeadSource = typeof LEAD_SOURCES[number]
+
+export const SOURCE_COLORS: Record<string, string> = {
+  'Website': 'bg-blue-100 text-blue-700',
+  'Referral': 'bg-green-100 text-green-700',
+  'Social Media': 'bg-purple-100 text-purple-700',
+  'Cold Outreach': 'bg-orange-100 text-orange-700',
+  'Event': 'bg-pink-100 text-pink-700',
+  'Inbound': 'bg-cyan-100 text-cyan-700',
+  'Partner': 'bg-yellow-100 text-yellow-700',
+  'Other': 'bg-gray-100 text-gray-700',
+}

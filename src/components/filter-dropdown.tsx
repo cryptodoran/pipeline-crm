@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Filter, X, ChevronDown, Tag as TagIcon } from 'lucide-react'
+import { LEAD_SOURCES } from '@/lib/types'
 
 export type PlatformFilter =
   | 'telegram'
@@ -41,6 +42,8 @@ interface FilterDropdownProps {
   availableTags?: Tag[]
   selectedTagIds?: string[]
   onTagsChange?: (tagIds: string[]) => void
+  selectedSources?: string[]
+  onSourcesChange?: (sources: string[]) => void
 }
 
 export function FilterDropdown({
@@ -49,6 +52,8 @@ export function FilterDropdown({
   availableTags = [],
   selectedTagIds = [],
   onTagsChange,
+  selectedSources = [],
+  onSourcesChange,
 }: FilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -81,13 +86,23 @@ export function FilterDropdown({
     }
   }
 
+  const toggleSource = (source: string) => {
+    if (!onSourcesChange) return
+    if (selectedSources.includes(source)) {
+      onSourcesChange(selectedSources.filter(s => s !== source))
+    } else {
+      onSourcesChange([...selectedSources, source])
+    }
+  }
+
   const clearAll = () => {
     onChange([])
     onTagsChange?.([])
+    onSourcesChange?.([])
     setIsOpen(false)
   }
 
-  const totalFilters = selectedFilters.length + selectedTagIds.length
+  const totalFilters = selectedFilters.length + selectedTagIds.length + selectedSources.length
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -173,6 +188,28 @@ export function FilterDropdown({
                 </label>
               ))}
             </div>
+
+            {/* Sources Section */}
+            <div className="border-t border-gray-100 my-2" />
+            <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 uppercase tracking-wide">
+              <span>Sources</span>
+            </div>
+            <div className="mt-1 space-y-0.5">
+              {LEAD_SOURCES.map(source => (
+                <label
+                  key={source}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSources.includes(source)}
+                    onChange={() => toggleSource(source)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{source}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -187,6 +224,8 @@ interface FilterBadgesProps {
   availableTags?: Tag[]
   selectedTagIds?: string[]
   onRemoveTag?: (tagId: string) => void
+  selectedSources?: string[]
+  onRemoveSource?: (source: string) => void
 }
 
 export function FilterBadges({
@@ -196,8 +235,10 @@ export function FilterBadges({
   availableTags = [],
   selectedTagIds = [],
   onRemoveTag,
+  selectedSources = [],
+  onRemoveSource,
 }: FilterBadgesProps) {
-  const totalFilters = selectedFilters.length + selectedTagIds.length
+  const totalFilters = selectedFilters.length + selectedTagIds.length + selectedSources.length
   if (totalFilters === 0) return null
 
   const getLabel = (filter: PlatformFilter) => {
@@ -247,6 +288,24 @@ export function FilterBadges({
           >
             <X className="h-3 w-3" />
           </button>
+        </span>
+      ))}
+      {/* Source badges */}
+      {selectedSources.map(source => (
+        <span
+          key={source}
+          className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded-full"
+        >
+          {source}
+          {onRemoveSource && (
+            <button
+              onClick={() => onRemoveSource(source)}
+              className="hover:bg-purple-200 rounded-full p-0.5"
+              aria-label={`Remove ${source} filter`}
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </span>
       ))}
       {totalFilters > 1 && (

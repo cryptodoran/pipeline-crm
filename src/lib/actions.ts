@@ -19,6 +19,7 @@ export async function createLead(data: {
   instagram?: string
   email?: string
   assigneeId?: string
+  source?: string
 }) {
   const lead = await prisma.lead.create({
     data: {
@@ -32,6 +33,7 @@ export async function createLead(data: {
       instagram: data.instagram || null,
       email: data.email || null,
       assigneeId: data.assigneeId || null,
+      source: data.source || null,
       stage: 'NEW',
     },
   })
@@ -53,6 +55,7 @@ export async function updateLead(
     email?: string
     assigneeId?: string | null
     stage?: PipelineStage
+    source?: string | null
   }
 ) {
   const lead = await prisma.lead.update({

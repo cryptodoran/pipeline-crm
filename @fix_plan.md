@@ -115,19 +115,19 @@
 - [x] Add success/error toast notifications
 - [x] Add undo capability (10 second window)
 
-## Phase 11: Import & Export (Priority: P2)
+## Phase 11: Import & Export (Priority: P2) - COMPLETE!
 
-- [ ] Add Export button to toolbar
-- [ ] Implement CSV export of all leads
-- [ ] Include all fields in export (name, socials, stage, assignee, notes count)
-- [ ] Add date to export filename
-- [ ] Add Import button to toolbar
-- [ ] Build CSV file upload and parsing
-- [ ] Build column mapping UI
-- [ ] Show preview before importing
-- [ ] Implement duplicate detection by email
-- [ ] Show import progress indicator
-- [ ] Show summary of imported/skipped leads
+- [x] Add Export button to toolbar
+- [x] Implement CSV export of all leads
+- [x] Include all fields in export (name, socials, stage, assignee, notes count)
+- [x] Add date to export filename
+- [x] Add Import button to toolbar
+- [x] Build CSV file upload and parsing
+- [x] Build column mapping UI
+- [x] Show preview before importing
+- [x] Implement duplicate detection by email
+- [x] Show import progress indicator
+- [x] Show summary of imported/skipped leads
 
 ## Phase 12: Activity & Dashboard (Priority: P3)
 

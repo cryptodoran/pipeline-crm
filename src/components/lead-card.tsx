@@ -2,7 +2,7 @@
 
 import { useDraggable } from '@dnd-kit/core'
 import { useState } from 'react'
-import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
+import { SOCIAL_URLS, SocialPlatform, SOURCE_COLORS } from '@/lib/types'
 import { LeadDetailModal } from './lead-detail-modal'
 import { TagPills } from './tag-input'
 import {
@@ -44,6 +44,7 @@ type Lead = {
   twitch: string | null
   instagram: string | null
   email: string | null
+  source: string | null
   assignee: { id: string; name: string; email: string } | null
   tags?: Tag[]
   reminders?: Reminder[]
@@ -194,6 +195,15 @@ export function LeadCard({
         {lead.tags && lead.tags.length > 0 && (
           <div className="mb-2">
             <TagPills tags={lead.tags} />
+          </div>
+        )}
+
+        {/* Source badge */}
+        {lead.source && (
+          <div className="mb-2">
+            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${SOURCE_COLORS[lead.source] || 'bg-gray-100 text-gray-700'}`}>
+              {lead.source}
+            </span>
           </div>
         )}
 

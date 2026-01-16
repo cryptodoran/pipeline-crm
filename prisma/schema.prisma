@@ -25,6 +25,9 @@ model Lead {
   assigneeId String?
   assignee   TeamMember? @relation(fields: [assigneeId], references: [id])
   stage      String      @default("NEW")
+  
+  // Source tracking
+  source     String?     // Where did this lead come from?
 
   // Tags
   tags      Tag[]       @relation("LeadTags")

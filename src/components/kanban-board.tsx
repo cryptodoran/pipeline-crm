@@ -39,6 +39,7 @@ type Lead = {
   twitch: string | null
   instagram: string | null
   email: string | null
+  source: string | null
   assignee: { id: string; name: string; email: string } | null
   tags?: Tag[]
   notes: Array<{
@@ -77,6 +78,7 @@ export function KanbanBoard({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState<PlatformFilter[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+  const [selectedSources, setSelectedSources] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set())
 
@@ -119,12 +121,19 @@ export function KanbanBoard({
           }
         }
 
+        // Source filters (OR logic - lead must have one of selected sources)
+        if (selectedSources.length > 0) {
+          if (!lead.source || !selectedSources.includes(lead.source)) {
+            return false
+          }
+        }
+
         return true
       })
     }
 
     return filtered
-  }, [localLeadsByStage, searchQuery, selectedFilters, selectedTagIds, stages])
+  }, [localLeadsByStage, searchQuery, selectedFilters, selectedTagIds, selectedSources, stages])
 
   // Check if search has any results
   const hasResults = useMemo(() => {
@@ -143,7 +152,7 @@ export function KanbanBoard({
     ? Object.values(localLeadsByStage).flat().find(lead => lead.id === activeId)
     : null
 
-  const hasActiveFilters = searchQuery || selectedFilters.length > 0 || selectedTagIds.length > 0
+  const hasActiveFilters = searchQuery || selectedFilters.length > 0 || selectedTagIds.length > 0 || selectedSources.length > 0
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string)
@@ -191,6 +200,7 @@ export function KanbanBoard({
   const handleClearAllFilters = () => {
     setSelectedFilters([])
     setSelectedTagIds([])
+    setSelectedSources([])
   }
 
   const handleSelectionChange = (leadId: string, selected: boolean) => {
@@ -241,6 +251,8 @@ export function KanbanBoard({
             availableTags={availableTags}
             selectedTagIds={selectedTagIds}
             onTagsChange={setSelectedTagIds}
+            selectedSources={selectedSources}
+            onSourcesChange={setSelectedSources}
           />
           <button
             onClick={toggleSelectionMode}
@@ -266,6 +278,8 @@ export function KanbanBoard({
           availableTags={availableTags}
           selectedTagIds={selectedTagIds}
           onRemoveTag={(tagId) => setSelectedTagIds(selectedTagIds.filter(id => id !== tagId))}
+          selectedSources={selectedSources}
+          onRemoveSource={(source) => setSelectedSources(selectedSources.filter(s => s !== source))}
         />
 
         {/* Bulk Action Toolbar */}

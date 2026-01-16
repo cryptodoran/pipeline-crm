@@ -22,6 +22,7 @@ type Lead = {
   twitch: string | null
   instagram: string | null
   email: string | null
+  source: string | null
   assignee: { id: string; name: string; email: string } | null
   tags?: Tag[]
   notes: Array<{
