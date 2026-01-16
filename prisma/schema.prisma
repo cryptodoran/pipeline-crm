@@ -75,6 +75,32 @@ model Reminder {
   note        String?
   completed   Boolean   @default(false)
   completedAt DateTime?
+  notified    Boolean   @default(false) // Has notification been sent?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+// Notification settings for reminder delivery
+model NotificationSettings {
+  id              String   @id @default(cuid())
+  
+  // Email settings
+  emailEnabled    Boolean  @default(false)
+  emailAddress    String?
+  
+  // Telegram settings
+  telegramEnabled Boolean  @default(false)
+  telegramChatId  String?
+  telegramBotToken String?
+  
+  // Slack settings
+  slackEnabled    Boolean  @default(false)
+  slackWebhookUrl String?
+  slackChannel    String?
+  
+  // Timing
+  reminderMinutesBefore Int @default(30) // How many minutes before due time to notify
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

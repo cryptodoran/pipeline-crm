@@ -203,6 +203,37 @@ export async function getTeamMember(id: string) {
   })
 }
 
+export async function updateTeamMember(id: string, data: { name?: string; email?: string }) {
+  const member = await prisma.teamMember.update({
+    where: { id },
+    data,
+  })
+  revalidatePath('/team')
+  revalidatePath('/')
+  return member
+}
+
+export async function deleteTeamMember(id: string) {
+  // First unassign all leads from this team member
+  await prisma.lead.updateMany({
+    where: { assigneeId: id },
+    data: { assigneeId: null },
+  })
+  
+  // Delete any notes authored by this team member
+  await prisma.note.deleteMany({
+    where: { authorId: id },
+  })
+  
+  // Delete the team member
+  await prisma.teamMember.delete({
+    where: { id },
+  })
+  
+  revalidatePath('/team')
+  revalidatePath('/')
+}
+
 // ============================================================================
 // TAG ACTIONS
 // ============================================================================

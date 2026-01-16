@@ -1,5 +1,6 @@
 import { getTeamMembers } from '@/lib/actions'
 import { AddTeamMemberButton } from '@/components/add-team-member-button'
+import { TeamMemberCard } from '@/components/team-member-card'
 import { Users } from 'lucide-react'
 
 export default async function TeamPage() {
@@ -25,19 +26,7 @@ export default async function TeamPage() {
       ) : (
         <div className="grid gap-4">
           {teamMembers.map(member => (
-            <div
-              key={member.id}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex justify-between items-center hover:shadow-sm transition-shadow"
-            >
-              <div>
-                <h3 className="font-medium text-gray-900">{member.name}</h3>
-                <p className="text-sm text-gray-500">{member.email}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900">{member._count.leads}</div>
-                <div className="text-sm text-gray-500">leads assigned</div>
-              </div>
-            </div>
+            <TeamMemberCard key={member.id} member={member} />
           ))}
         </div>
       )}

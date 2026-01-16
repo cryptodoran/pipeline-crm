@@ -39,6 +39,9 @@ export default function RootLayout({
                   <a href="/reminders" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
                     Reminders
                   </a>
+                  <a href="/settings" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Settings
+                  </a>
                 </nav>
               </div>
             </div>
