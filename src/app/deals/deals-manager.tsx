@@ -64,6 +64,76 @@ const PAYMENT_FREQUENCIES = ['weekly', 'monthly', 'quarterly', 'annually', 'one-
 const DEAL_STATUSES = ['ACTIVE', 'PAUSED', 'TERMINATED']
 const REMINDER_TYPES = ['PAYMENT', 'VESTING', 'REVIEW', 'OTHER']
 
+// Form state type with string values for numeric fields (for proper input handling)
+type FormDataStrings = {
+  communityName: string
+  contactUsername: string
+  contactPlatform: string
+  assigneeId: string
+  fee: string
+  referralCode: string
+  referralRevShare: string
+  advisorTokenTotal: string
+  advisorVestingSchedule: string
+  homeTokenAllocation: string
+  homeTokenThreshold: string
+  purportedVolume: string
+  volumePeriod: string
+  contractLink: string
+  executedDate: string
+  status: string
+  notes: string
+  nextPaymentDue: string
+  paymentFrequency: string
+}
+
+const emptyFormData: FormDataStrings = {
+  communityName: '',
+  contactUsername: '',
+  contactPlatform: 'telegram',
+  assigneeId: '',
+  fee: '',
+  referralCode: '',
+  referralRevShare: '',
+  advisorTokenTotal: '',
+  advisorVestingSchedule: '',
+  homeTokenAllocation: '',
+  homeTokenThreshold: '',
+  purportedVolume: '',
+  volumePeriod: 'monthly',
+  contractLink: '',
+  executedDate: '',
+  status: 'ACTIVE',
+  notes: '',
+  nextPaymentDue: '',
+  paymentFrequency: 'monthly',
+}
+
+// Convert string form data to API input (parse numbers)
+function formDataToInput(data: FormDataStrings): CreateDealInput {
+  return {
+    communityName: data.communityName,
+    contactUsername: data.contactUsername || undefined,
+    contactPlatform: data.contactPlatform || undefined,
+    assigneeId: data.assigneeId || undefined,
+    fee: data.fee ? parseFloat(data.fee) : undefined,
+    referralCode: data.referralCode || undefined,
+    referralRevShare: data.referralRevShare ? parseFloat(data.referralRevShare) : undefined,
+    advisorTokenTotal: data.advisorTokenTotal ? parseFloat(data.advisorTokenTotal) : undefined,
+    advisorVestingSchedule: data.advisorVestingSchedule || undefined,
+    homeTokenAllocation: data.homeTokenAllocation ? parseFloat(data.homeTokenAllocation) : undefined,
+    homeTokenThreshold: data.homeTokenThreshold || undefined,
+    purportedVolume: data.purportedVolume || undefined,
+    volumePeriod: data.volumePeriod || undefined,
+    contractLink: data.contractLink || undefined,
+    executedDate: data.executedDate ? new Date(data.executedDate) : undefined,
+    status: data.status || undefined,
+    notes: data.notes || undefined,
+    nextPaymentDue: data.nextPaymentDue ? new Date(data.nextPaymentDue) : undefined,
+    paymentFrequency: data.paymentFrequency || undefined,
+  }
+}
+
 export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
   const [deals, setDeals] = useState(initialDeals)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -72,27 +142,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
   const [expandedDealId, setExpandedDealId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  const [formData, setFormData] = useState<CreateDealInput>({
-    communityName: '',
-    contactUsername: '',
-    contactPlatform: 'telegram',
-    assigneeId: undefined,
-    fee: undefined,
-    referralCode: '',
-    referralRevShare: undefined,
-    advisorTokenTotal: undefined,
-    advisorVestingSchedule: '',
-    homeTokenAllocation: undefined,
-    homeTokenThreshold: '',
-    purportedVolume: '',
-    volumePeriod: 'monthly',
-    contractLink: '',
-    executedDate: undefined,
-    status: 'ACTIVE',
-    notes: '',
-    nextPaymentDue: undefined,
-    paymentFrequency: 'monthly',
-  })
+  const [formData, setFormData] = useState<FormDataStrings>(emptyFormData)
 
   const [reminderForm, setReminderForm] = useState({
     dueAt: '',
@@ -101,27 +151,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
   })
 
   const resetForm = () => {
-    setFormData({
-      communityName: '',
-      contactUsername: '',
-      contactPlatform: 'telegram',
-      assigneeId: undefined,
-      fee: undefined,
-      referralCode: '',
-      referralRevShare: undefined,
-      advisorTokenTotal: undefined,
-      advisorVestingSchedule: '',
-      homeTokenAllocation: undefined,
-      homeTokenThreshold: '',
-      purportedVolume: '',
-      volumePeriod: 'monthly',
-      contractLink: '',
-      executedDate: undefined,
-      status: 'ACTIVE',
-      notes: '',
-      nextPaymentDue: undefined,
-      paymentFrequency: 'monthly',
-    })
+    setFormData(emptyFormData)
   }
 
   const handleOpenEdit = (deal: Deal) => {
@@ -129,21 +159,21 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
       communityName: deal.communityName,
       contactUsername: deal.contactUsername || '',
       contactPlatform: deal.contactPlatform || 'telegram',
-      assigneeId: deal.assigneeId || undefined,
-      fee: deal.fee ? Number(deal.fee) : undefined,
+      assigneeId: deal.assigneeId || '',
+      fee: deal.fee ? String(deal.fee) : '',
       referralCode: deal.referralCode || '',
-      referralRevShare: deal.referralRevShare ? Number(deal.referralRevShare) : undefined,
-      advisorTokenTotal: deal.advisorTokenTotal ? Number(deal.advisorTokenTotal) : undefined,
+      referralRevShare: deal.referralRevShare ? String(deal.referralRevShare) : '',
+      advisorTokenTotal: deal.advisorTokenTotal ? String(deal.advisorTokenTotal) : '',
       advisorVestingSchedule: deal.advisorVestingSchedule || '',
-      homeTokenAllocation: deal.homeTokenAllocation ? Number(deal.homeTokenAllocation) : undefined,
+      homeTokenAllocation: deal.homeTokenAllocation ? String(deal.homeTokenAllocation) : '',
       homeTokenThreshold: deal.homeTokenThreshold || '',
       purportedVolume: deal.purportedVolume || '',
       volumePeriod: deal.volumePeriod || 'monthly',
       contractLink: deal.contractLink || '',
-      executedDate: deal.executedDate || undefined,
+      executedDate: deal.executedDate ? new Date(deal.executedDate).toISOString().split('T')[0] : '',
       status: deal.status,
       notes: deal.notes || '',
-      nextPaymentDue: deal.nextPaymentDue || undefined,
+      nextPaymentDue: deal.nextPaymentDue ? new Date(deal.nextPaymentDue).toISOString().split('T')[0] : '',
       paymentFrequency: deal.paymentFrequency || 'monthly',
     })
     setEditingDeal(deal)
@@ -156,14 +186,17 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
       return
     }
 
+    // Convert string form data to API input with parsed numbers
+    const inputData = formDataToInput(formData)
+
     startTransition(async () => {
       try {
         if (editingDeal) {
-          await updateDeal(editingDeal.id, formData)
+          await updateDeal(editingDeal.id, inputData)
           toast.success('Deal updated')
           setEditingDeal(null)
         } else {
-          await createDeal(formData)
+          await createDeal(inputData)
           toast.success('Deal created')
           setIsAddModalOpen(false)
         }
@@ -575,7 +608,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigned To</label>
                     <select
                       value={formData.assigneeId || ''}
-                      onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value || undefined })}
+                      onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                       <option value="">Unassigned</option>
@@ -616,10 +649,11 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fee ($)</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      value={formData.fee || ''}
-                      onChange={(e) => setFormData({ ...formData, fee: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.fee}
+                      onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
+                      placeholder="0.00"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -635,12 +669,11 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Revenue Share (%)</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={formData.referralRevShare || ''}
-                      onChange={(e) => setFormData({ ...formData, referralRevShare: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.referralRevShare}
+                      onChange={(e) => setFormData({ ...formData, referralRevShare: e.target.value })}
+                      placeholder="0.0005 = 5 bps"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -654,10 +687,11 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Advisor Token Total ($)</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      value={formData.advisorTokenTotal || ''}
-                      onChange={(e) => setFormData({ ...formData, advisorTokenTotal: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.advisorTokenTotal}
+                      onChange={(e) => setFormData({ ...formData, advisorTokenTotal: e.target.value })}
+                      placeholder="0.00"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -674,12 +708,11 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Home Token Allocation (%)</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={formData.homeTokenAllocation || ''}
-                      onChange={(e) => setFormData({ ...formData, homeTokenAllocation: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      type="text"
+                      inputMode="decimal"
+                      value={formData.homeTokenAllocation}
+                      onChange={(e) => setFormData({ ...formData, homeTokenAllocation: e.target.value })}
+                      placeholder="0.0005 = 5 bps"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -735,8 +768,8 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Executed Date</label>
                     <input
                       type="date"
-                      value={formData.executedDate ? new Date(formData.executedDate).toISOString().split('T')[0] : ''}
-                      onChange={(e) => setFormData({ ...formData, executedDate: e.target.value ? new Date(e.target.value) : undefined })}
+                      value={formData.executedDate}
+                      onChange={(e) => setFormData({ ...formData, executedDate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
@@ -756,8 +789,8 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Next Payment Due</label>
                     <input
                       type="date"
-                      value={formData.nextPaymentDue ? new Date(formData.nextPaymentDue).toISOString().split('T')[0] : ''}
-                      onChange={(e) => setFormData({ ...formData, nextPaymentDue: e.target.value ? new Date(e.target.value) : undefined })}
+                      value={formData.nextPaymentDue}
+                      onChange={(e) => setFormData({ ...formData, nextPaymentDue: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
