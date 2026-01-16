@@ -29,8 +29,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE() {
-  // Logout - clear the auth cookie
+  // Logout - clear both auth and identity cookies
   const cookieStore = await cookies()
   cookieStore.delete('crm-auth')
+  cookieStore.delete('crm-user-id')
   return NextResponse.json({ success: true })
 }
