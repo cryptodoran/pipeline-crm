@@ -13,9 +13,10 @@ type TeamMember = {
 
 interface AddLeadButtonProps {
   teamMembers: TeamMember[]
+  currentUserId?: string | null
 }
 
-export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
+export function AddLeadButton({ teamMembers, currentUserId }: AddLeadButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -52,6 +53,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
         assigneeId: formData.assigneeId || undefined,
         source: formData.source || undefined,
         initialNote: formData.initialNote.trim() || undefined,
+        authorId: currentUserId || undefined,
       })
       setFormData({
         name: '',

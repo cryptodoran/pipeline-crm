@@ -63,6 +63,7 @@ interface KanbanBoardProps {
   stages: string[]
   stageLabels: Record<string, string>
   stageColors: Record<string, string>
+  currentUserId?: string | null
 }
 
 const POLL_INTERVAL = 10000 // 10 seconds
@@ -74,6 +75,7 @@ export function KanbanBoard({
   stages,
   stageLabels,
   stageColors,
+  currentUserId,
 }: KanbanBoardProps) {
   const router = useRouter()
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -418,6 +420,7 @@ export function KanbanBoard({
               stages={stages}
               stageLabels={stageLabels}
               selectionMode={selectionMode}
+              currentUserId={currentUserId}
               selectedLeadIds={selectedLeadIds}
               onSelectionChange={handleSelectionChange}
             />

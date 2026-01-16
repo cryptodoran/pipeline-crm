@@ -50,6 +50,7 @@ interface PipelineColumnProps {
   selectionMode?: boolean
   selectedLeadIds?: Set<string>
   onSelectionChange?: (leadId: string, selected: boolean) => void
+  currentUserId?: string | null
 }
 
 export function PipelineColumn({
@@ -64,6 +65,7 @@ export function PipelineColumn({
   selectionMode = false,
   selectedLeadIds = new Set(),
   onSelectionChange,
+  currentUserId,
 }: PipelineColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage,
@@ -103,6 +105,7 @@ export function PipelineColumn({
               selectionMode={selectionMode}
               isSelected={selectedLeadIds.has(lead.id)}
               onSelectionChange={onSelectionChange}
+              currentUserId={currentUserId}
             />
           ))
         )}

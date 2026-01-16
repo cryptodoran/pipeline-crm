@@ -34,6 +34,7 @@ export async function createLead(data: {
   assigneeId?: string
   source?: string
   initialNote?: string
+  authorId?: string // Current user ID for note authorship
 }) {
   // Validate input
   const validated = createLeadSchema.parse(data)
@@ -56,23 +57,15 @@ export async function createLead(data: {
   })
 
   // Add initial note if provided
-  if (data.initialNote && data.assigneeId) {
-    await prisma.note.create({
-      data: {
-        content: data.initialNote,
-        leadId: lead.id,
-        authorId: data.assigneeId,
-      },
-    })
-  } else if (data.initialNote) {
-    // If no assignee, try to get the first team member as author
-    const firstMember = await prisma.teamMember.findFirst()
-    if (firstMember) {
+  if (data.initialNote) {
+    // Use authorId (current user), or assigneeId as fallback
+    const noteAuthorId = data.authorId || data.assigneeId
+    if (noteAuthorId) {
       await prisma.note.create({
         data: {
           content: data.initialNote,
           leadId: lead.id,
-          authorId: firstMember.id,
+          authorId: noteAuthorId,
         },
       })
     }

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Routes that don't require authentication
-const publicRoutes = ['/login', '/api/auth']
+const publicRoutes = ['/login', '/api/auth', '/api/team-members']
+
+// Routes that require auth but not identity
+const authOnlyRoutes = ['/select-identity']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -27,6 +30,20 @@ export function middleware(request: NextRequest) {
     // Redirect to login
     const loginUrl = new URL('/login', request.url)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // Auth-only routes don't need identity check
+  if (authOnlyRoutes.some(route => pathname.startsWith(route))) {
+    return NextResponse.next()
+  }
+
+  // Check for identity cookie
+  const identityCookie = request.cookies.get('crm-user-id')
+
+  if (!identityCookie) {
+    // Redirect to identity selection
+    const identityUrl = new URL('/select-identity', request.url)
+    return NextResponse.redirect(identityUrl)
   }
 
   return NextResponse.next()

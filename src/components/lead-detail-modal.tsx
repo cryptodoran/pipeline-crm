@@ -51,6 +51,7 @@ interface LeadDetailModalProps {
   stageLabels?: Record<string, string>
   isOpen: boolean
   onClose: () => void
+  currentUserId?: string | null
 }
 
 export function LeadDetailModal({
@@ -61,6 +62,7 @@ export function LeadDetailModal({
   stageLabels = {},
   isOpen,
   onClose,
+  currentUserId,
 }: LeadDetailModalProps) {
   const [isPending, startTransition] = useTransition()
   const [noteContent, setNoteContent] = useState('')
@@ -95,8 +97,8 @@ export function LeadDetailModal({
 
   const handleAddNote = () => {
     if (!noteContent.trim()) return
-    // For now, use the first team member as author (in production, use current user)
-    const authorId = teamMembers[0]?.id
+    // Use current user as author
+    const authorId = currentUserId || teamMembers[0]?.id
     if (!authorId) return
 
     startTransition(async () => {

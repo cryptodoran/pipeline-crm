@@ -75,6 +75,7 @@ interface LeadCardProps {
   selectionMode?: boolean
   isSelected?: boolean
   onSelectionChange?: (leadId: string, selected: boolean) => void
+  currentUserId?: string | null
 }
 
 const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ className?: string }>> = {
@@ -98,6 +99,7 @@ export function LeadCard({
   selectionMode = false,
   isSelected = false,
   onSelectionChange,
+  currentUserId,
 }: LeadCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -282,6 +284,7 @@ export function LeadCard({
         stageLabels={stageLabels}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        currentUserId={currentUserId}
       />
     </>
   )
