@@ -256,7 +256,9 @@ export async function getTeamMembers() {
   return prisma.teamMember.findMany({
     include: {
       _count: {
-        select: { leads: true },
+        select: {
+          leads: { where: { archived: false } }
+        },
       },
     },
     orderBy: { name: 'asc' },
@@ -321,7 +323,9 @@ export async function getTags() {
   return prisma.tag.findMany({
     include: {
       _count: {
-        select: { leads: true },
+        select: {
+          leads: { where: { archived: false } }
+        },
       },
     },
     orderBy: { name: 'asc' },
