@@ -1,4 +1,5 @@
 import { getDeals, getOverdueDealReminders } from '@/lib/deal-actions'
+import { getTeamMembers } from '@/lib/actions'
 import { requireAuth } from '@/lib/current-user'
 import { DealsManager } from './deals-manager'
 import { Handshake, AlertTriangle } from 'lucide-react'
@@ -7,8 +8,11 @@ export const dynamic = 'force-dynamic'
 
 export default async function DealsPage() {
   await requireAuth()
-  const deals = await getDeals()
-  const overdueReminders = await getOverdueDealReminders()
+  const [deals, overdueReminders, teamMembers] = await Promise.all([
+    getDeals(),
+    getOverdueDealReminders(),
+    getTeamMembers(),
+  ])
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -46,7 +50,7 @@ export default async function DealsPage() {
         </div>
       )}
 
-      <DealsManager initialDeals={deals} />
+      <DealsManager initialDeals={deals} teamMembers={teamMembers} />
     </div>
   )
 }

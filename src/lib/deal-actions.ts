@@ -12,6 +12,7 @@ export type CreateDealInput = {
   communityName: string
   contactUsername?: string
   contactPlatform?: string
+  assigneeId?: string | null
   fee?: number
   referralCode?: string
   referralRevShare?: number
@@ -35,6 +36,7 @@ export async function createDeal(data: CreateDealInput) {
       communityName: data.communityName,
       contactUsername: data.contactUsername || null,
       contactPlatform: data.contactPlatform || null,
+      assigneeId: data.assigneeId || null,
       fee: data.fee ? new Decimal(data.fee) : null,
       referralCode: data.referralCode || null,
       referralRevShare: data.referralRevShare ? new Decimal(data.referralRevShare) : null,
@@ -58,10 +60,11 @@ export async function createDeal(data: CreateDealInput) {
 
 export async function updateDeal(id: string, data: Partial<CreateDealInput>) {
   const updateData: Record<string, unknown> = {}
-  
+
   if (data.communityName !== undefined) updateData.communityName = data.communityName
   if (data.contactUsername !== undefined) updateData.contactUsername = data.contactUsername || null
   if (data.contactPlatform !== undefined) updateData.contactPlatform = data.contactPlatform || null
+  if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId || null
   if (data.fee !== undefined) updateData.fee = data.fee ? new Decimal(data.fee) : null
   if (data.referralCode !== undefined) updateData.referralCode = data.referralCode || null
   if (data.referralRevShare !== undefined) updateData.referralRevShare = data.referralRevShare ? new Decimal(data.referralRevShare) : null
@@ -96,6 +99,7 @@ export async function deleteDeal(id: string) {
 export async function getDeals() {
   return prisma.deal.findMany({
     include: {
+      assignee: true,
       reminders: {
         where: { completed: false },
         orderBy: { dueAt: 'asc' },

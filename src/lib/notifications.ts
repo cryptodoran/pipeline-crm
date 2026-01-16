@@ -159,17 +159,135 @@ export async function getPendingNotifications() {
   })
 }
 
-// Process all pending notifications
+// Process all pending notifications (both lead and deal reminders)
 export async function processPendingNotifications() {
-  const pending = await getPendingNotifications()
   const results = []
-  
-  for (const reminder of pending) {
+
+  // Process lead reminders
+  const pendingLeadReminders = await getPendingNotifications()
+  for (const reminder of pendingLeadReminders) {
     const result = await sendReminderNotification(reminder.id)
-    results.push({ reminderId: reminder.id, ...result })
+    results.push({ type: 'lead', reminderId: reminder.id, ...result })
   }
-  
+
+  // Process deal reminders
+  const pendingDealReminders = await getPendingDealNotifications()
+  for (const reminder of pendingDealReminders) {
+    const result = await sendDealReminderNotification(reminder.id)
+    results.push({ type: 'deal', reminderId: reminder.id, ...result })
+  }
+
   return results
+}
+
+// Get deal reminders that need notifications
+export async function getPendingDealNotifications() {
+  const settings = await getNotificationSettings()
+  const minutesBefore = settings.reminderMinutesBefore
+
+  const now = new Date()
+  const notifyBefore = new Date(now.getTime() + minutesBefore * 60 * 1000)
+
+  return prisma.dealReminder.findMany({
+    where: {
+      completed: false,
+      notified: false,
+      dueAt: {
+        lte: notifyBefore,
+      },
+    },
+    include: {
+      deal: {
+        include: { assignee: true },
+      },
+    },
+  })
+}
+
+// Send notification for a deal reminder
+export async function sendDealReminderNotification(reminderId: string) {
+  const reminder = await prisma.dealReminder.findUnique({
+    where: { id: reminderId },
+    include: {
+      deal: {
+        include: { assignee: true },
+      },
+    },
+  })
+
+  if (!reminder || reminder.completed || reminder.notified) {
+    return { success: false, message: 'Deal reminder not found or already processed' }
+  }
+
+  const settings = await getNotificationSettings()
+  const results: { channel: string; success: boolean; error?: string }[] = []
+  const assignee = reminder.deal.assignee
+
+  // Check if assignee wants notifications
+  if (assignee && assignee.notifyOnReminder === false) {
+    await prisma.dealReminder.update({
+      where: { id: reminderId },
+      data: { notified: true },
+    })
+    return { success: true, message: 'Assignee has notifications disabled', results: [] }
+  }
+
+  const message = formatDealReminderMessage(reminder)
+
+  // Send via Email
+  if (settings.emailEnabled) {
+    const emailTo = assignee?.email || settings.emailAddress
+    if (emailTo) {
+      try {
+        await sendEmailNotification(emailTo, `Deal Reminder: ${reminder.deal.communityName}`, message)
+        results.push({ channel: 'email', success: true })
+      } catch (error) {
+        results.push({ channel: 'email', success: false, error: String(error) })
+      }
+    }
+  }
+
+  // Send via Telegram
+  if (settings.telegramEnabled && settings.telegramBotToken) {
+    const chatId = assignee?.telegramChatId || settings.telegramChatId
+    if (chatId) {
+      try {
+        await sendTelegramNotification(settings.telegramBotToken, chatId, message)
+        results.push({ channel: 'telegram', success: true })
+      } catch (error) {
+        results.push({ channel: 'telegram', success: false, error: String(error) })
+      }
+    }
+  }
+
+  // Send via Slack
+  const slackWebhook = process.env.SLACK_WEBHOOK_URL || settings.slackWebhookUrl
+  if (settings.slackEnabled && slackWebhook) {
+    try {
+      const slackMessage = assignee?.slackUserId
+        ? `<@${assignee.slackUserId}> ${message}`
+        : message
+
+      await sendSlackNotification(
+        slackWebhook,
+        slackMessage,
+        settings.slackChannel || undefined
+      )
+      results.push({ channel: 'slack', success: true })
+    } catch (error) {
+      results.push({ channel: 'slack', success: false, error: String(error) })
+    }
+  }
+
+  // Mark reminder as notified
+  if (results.some(r => r.success)) {
+    await prisma.dealReminder.update({
+      where: { id: reminderId },
+      data: { notified: true },
+    })
+  }
+
+  return { success: results.some(r => r.success), results }
 }
 
 // Test notification channels
@@ -201,7 +319,7 @@ export async function testNotificationChannel(channel: 'email' | 'telegram' | 's
   }
 }
 
-// Helper: Format reminder message
+// Helper: Format lead reminder message
 function formatReminderMessage(reminder: {
   dueAt: Date
   note: string | null
@@ -215,6 +333,33 @@ function formatReminderMessage(reminder: {
   }
   if (reminder.lead.assignee) {
     message += `👤 Assigned to: ${reminder.lead.assignee.name}`
+  }
+  return message
+}
+
+// Helper: Format deal reminder message
+function formatDealReminderMessage(reminder: {
+  dueAt: Date
+  note: string | null
+  type: string
+  deal: { communityName: string; assignee: { name: string } | null }
+}) {
+  const dueTime = reminder.dueAt.toLocaleString()
+  const typeEmoji = {
+    PAYMENT: '💰',
+    VESTING: '🔓',
+    REVIEW: '📋',
+    OTHER: '📌',
+  }[reminder.type] || '📌'
+
+  let message = `${typeEmoji} Deal Reminder: ${reminder.deal.communityName}\n`
+  message += `📅 Due: ${dueTime}\n`
+  message += `🏷️ Type: ${reminder.type}\n`
+  if (reminder.note) {
+    message += `📝 Note: ${reminder.note}\n`
+  }
+  if (reminder.deal.assignee) {
+    message += `👤 Assigned to: ${reminder.deal.assignee.name}`
   }
   return message
 }

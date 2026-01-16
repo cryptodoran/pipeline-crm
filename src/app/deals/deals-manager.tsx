@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { 
-  Plus, X, Edit2, Trash2, Bell, Check, Calendar, 
+import {
+  Plus, X, Edit2, Trash2, Bell, Check, Calendar,
   DollarSign, Percent, Clock, FileText, AlertCircle,
-  MessageCircle, ExternalLink
+  MessageCircle, ExternalLink, User
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { 
@@ -22,11 +22,19 @@ type DealReminder = {
   completed: boolean
 }
 
+type TeamMember = {
+  id: string
+  name: string
+  color?: string
+}
+
 type Deal = {
   id: string
   communityName: string
   contactUsername: string | null
   contactPlatform: string | null
+  assigneeId: string | null
+  assignee: TeamMember | null
   fee: Decimal | null
   referralCode: string | null
   referralRevShare: Decimal | null
@@ -48,6 +56,7 @@ type Deal = {
 
 interface DealsManagerProps {
   initialDeals: Deal[]
+  teamMembers: TeamMember[]
 }
 
 const CONTACT_PLATFORMS = ['telegram', 'discord', 'twitter', 'email', 'other']
@@ -55,7 +64,7 @@ const PAYMENT_FREQUENCIES = ['weekly', 'monthly', 'quarterly', 'annually', 'one-
 const DEAL_STATUSES = ['ACTIVE', 'PAUSED', 'TERMINATED']
 const REMINDER_TYPES = ['PAYMENT', 'VESTING', 'REVIEW', 'OTHER']
 
-export function DealsManager({ initialDeals }: DealsManagerProps) {
+export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
   const [deals, setDeals] = useState(initialDeals)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
@@ -67,6 +76,7 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
     communityName: '',
     contactUsername: '',
     contactPlatform: 'telegram',
+    assigneeId: undefined,
     fee: undefined,
     referralCode: '',
     referralRevShare: undefined,
@@ -95,6 +105,7 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
       communityName: '',
       contactUsername: '',
       contactPlatform: 'telegram',
+      assigneeId: undefined,
       fee: undefined,
       referralCode: '',
       referralRevShare: undefined,
@@ -118,6 +129,7 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
       communityName: deal.communityName,
       contactUsername: deal.contactUsername || '',
       contactPlatform: deal.contactPlatform || 'telegram',
+      assigneeId: deal.assigneeId || undefined,
       fee: deal.fee ? Number(deal.fee) : undefined,
       referralCode: deal.referralCode || '',
       referralRevShare: deal.referralRevShare ? Number(deal.referralRevShare) : undefined,
@@ -334,6 +346,12 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
 
                   {/* Quick Info Row */}
                   <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    {deal.assignee && (
+                      <span className="flex items-center gap-1">
+                        <User className="w-4 h-4" />
+                        {deal.assignee.name}
+                      </span>
+                    )}
                     {deal.contactUsername && (
                       <span className="flex items-center gap-1">
                         <MessageCircle className="w-4 h-4" />
@@ -550,6 +568,19 @@ export function DealsManager({ initialDeals }: DealsManagerProps) {
                     >
                       {DEAL_STATUSES.map(status => (
                         <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assigned To</label>
+                    <select
+                      value={formData.assigneeId || ''}
+                      onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value || undefined })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="">Unassigned</option>
+                      {teamMembers.map(member => (
+                        <option key={member.id} value={member.id}>{member.name}</option>
                       ))}
                     </select>
                   </div>

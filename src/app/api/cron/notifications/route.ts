@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { processPendingNotifications, getPendingNotifications, getNotificationSettings } from '@/lib/notifications'
+import { processPendingNotifications, getPendingNotifications, getPendingDealNotifications, getNotificationSettings } from '@/lib/notifications'
 
 // This endpoint processes pending reminder notifications
 // It can be called by:
@@ -25,7 +25,8 @@ export async function GET(request: Request) {
     if (debug) {
       // Return debug info without processing
       const settings = await getNotificationSettings()
-      const pending = await getPendingNotifications()
+      const pendingLeadReminders = await getPendingNotifications()
+      const pendingDealReminders = await getPendingDealNotifications()
       return NextResponse.json({
         debug: true,
         settings: {
@@ -35,11 +36,22 @@ export async function GET(request: Request) {
           telegramEnabled: settings.telegramEnabled,
           reminderMinutesBefore: settings.reminderMinutesBefore,
         },
-        pendingReminders: pending.map(r => ({
+        pendingLeadReminders: pendingLeadReminders.map(r => ({
           id: r.id,
           leadName: r.lead.name,
           assignee: r.lead.assignee?.name || 'Unassigned',
           assigneeSlackId: r.lead.assignee?.slackUserId || null,
+          dueAt: r.dueAt,
+          notified: r.notified,
+          completed: r.completed,
+        })),
+        pendingDealReminders: pendingDealReminders.map(r => ({
+          id: r.id,
+          type: r.type,
+          communityName: r.deal.communityName,
+          assignee: r.deal.assignee?.name || 'Unassigned',
+          assigneeSlackId: r.deal.assignee?.slackUserId || null,
+          note: r.note,
           dueAt: r.dueAt,
           notified: r.notified,
           completed: r.completed,

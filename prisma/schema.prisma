@@ -58,6 +58,7 @@ model TeamMember {
   notifyOnReminder  Boolean  @default(true) // Receive reminder notifications?
 
   leads      Lead[]
+  deals      Deal[]
   notes      Note[]
   activities Activity[]
   createdAt  DateTime @default(now())
@@ -123,11 +124,15 @@ model NotificationSettings {
 // Closed deals / Contracts with trading communities
 model Deal {
   id                String   @id @default(cuid())
-  
+
   // Basic info
   communityName     String   // Trading community name
   contactUsername   String?  // Contact point username
   contactPlatform   String?  // telegram, discord, twitter, etc.
+
+  // Assignment
+  assigneeId        String?
+  assignee          TeamMember? @relation(fields: [assigneeId], references: [id])
   
   // Financial terms
   fee               Decimal? @db.Decimal(18, 2)  // Fee amount
