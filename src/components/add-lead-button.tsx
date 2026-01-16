@@ -31,6 +31,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
     email: '',
     assigneeId: '',
     source: '',
+    initialNote: '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,6 +51,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
         email: formData.email.trim() || undefined,
         assigneeId: formData.assigneeId || undefined,
         source: formData.source || undefined,
+        initialNote: formData.initialNote.trim() || undefined,
       })
       setFormData({
         name: '',
@@ -63,6 +65,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
         email: '',
         assigneeId: '',
         source: '',
+        initialNote: '',
       })
       setIsOpen(false)
     })
@@ -209,6 +212,20 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Initial Note */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={formData.initialNote}
+                  onChange={e => setFormData({ ...formData, initialNote: e.target.value })}
+                  placeholder="Add initial notes about this lead..."
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
               </div>
 
               {/* Actions */}

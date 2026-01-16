@@ -42,7 +42,7 @@ export async function updateNotificationSettings(data: {
   return updated
 }
 
-// Send notification for a reminder
+// Send notification for a reminder (uses per-team-member settings)
 export async function sendReminderNotification(reminderId: string) {
   const reminder = await prisma.reminder.findUnique({
     where: { id: reminderId },
@@ -52,46 +52,64 @@ export async function sendReminderNotification(reminderId: string) {
       },
     },
   })
-  
+
   if (!reminder || reminder.completed || reminder.notified) {
     return { success: false, message: 'Reminder not found or already processed' }
   }
-  
+
   const settings = await getNotificationSettings()
   const results: { channel: string; success: boolean; error?: string }[] = []
-  
+  const assignee = reminder.lead.assignee
+
+  // Check if assignee wants notifications
+  if (assignee && assignee.notifyOnReminder === false) {
+    // Mark as notified but skip sending (user opted out)
+    await prisma.reminder.update({
+      where: { id: reminderId },
+      data: { notified: true },
+    })
+    return { success: true, message: 'Assignee has notifications disabled', results: [] }
+  }
+
   const message = formatReminderMessage(reminder)
-  
-  // Send via Email
-  if (settings.emailEnabled && settings.emailAddress) {
-    try {
-      await sendEmailNotification(settings.emailAddress, reminder.lead.name, message)
-      results.push({ channel: 'email', success: true })
-    } catch (error) {
-      results.push({ channel: 'email', success: false, error: String(error) })
+
+  // Send via Email (to assignee's email if available, otherwise global)
+  if (settings.emailEnabled) {
+    const emailTo = assignee?.email || settings.emailAddress
+    if (emailTo) {
+      try {
+        await sendEmailNotification(emailTo, `Reminder: ${reminder.lead.name}`, message)
+        results.push({ channel: 'email', success: true })
+      } catch (error) {
+        results.push({ channel: 'email', success: false, error: String(error) })
+      }
     }
   }
-  
-  // Send via Telegram
-  if (settings.telegramEnabled && settings.telegramBotToken && settings.telegramChatId) {
-    try {
-      await sendTelegramNotification(
-        settings.telegramBotToken,
-        settings.telegramChatId,
-        message
-      )
-      results.push({ channel: 'telegram', success: true })
-    } catch (error) {
-      results.push({ channel: 'telegram', success: false, error: String(error) })
+
+  // Send via Telegram (to assignee's chat ID if available, otherwise global)
+  if (settings.telegramEnabled && settings.telegramBotToken) {
+    const chatId = assignee?.telegramChatId || settings.telegramChatId
+    if (chatId) {
+      try {
+        await sendTelegramNotification(settings.telegramBotToken, chatId, message)
+        results.push({ channel: 'telegram', success: true })
+      } catch (error) {
+        results.push({ channel: 'telegram', success: false, error: String(error) })
+      }
     }
   }
-  
-  // Send via Slack
+
+  // Send via Slack (mention assignee if they have a Slack user ID)
   if (settings.slackEnabled && settings.slackWebhookUrl) {
     try {
+      // If assignee has a Slack user ID, mention them
+      const slackMessage = assignee?.slackUserId
+        ? `<@${assignee.slackUserId}> ${message}`
+        : message
+
       await sendSlackNotification(
         settings.slackWebhookUrl,
-        message,
+        slackMessage,
         settings.slackChannel || undefined
       )
       results.push({ channel: 'slack', success: true })
@@ -99,7 +117,7 @@ export async function sendReminderNotification(reminderId: string) {
       results.push({ channel: 'slack', success: false, error: String(error) })
     }
   }
-  
+
   // Mark reminder as notified
   if (results.some(r => r.success)) {
     await prisma.reminder.update({
@@ -107,7 +125,7 @@ export async function sendReminderNotification(reminderId: string) {
       data: { notified: true },
     })
   }
-  
+
   return { success: results.some(r => r.success), results }
 }
 

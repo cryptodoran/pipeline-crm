@@ -25,6 +25,9 @@ interface TeamMemberCardProps {
     name: string
     email: string
     color?: string
+    slackUserId?: string | null
+    telegramChatId?: string | null
+    notifyOnReminder?: boolean
     _count: {
       leads: number
     }
@@ -37,6 +40,9 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
   const [editName, setEditName] = useState(member.name)
   const [editEmail, setEditEmail] = useState(member.email)
   const [editColor, setEditColor] = useState(member.color || '#6366f1')
+  const [editSlackUserId, setEditSlackUserId] = useState(member.slackUserId || '')
+  const [editTelegramChatId, setEditTelegramChatId] = useState(member.telegramChatId || '')
+  const [editNotifyOnReminder, setEditNotifyOnReminder] = useState(member.notifyOnReminder !== false)
   const [isPending, startTransition] = useTransition()
 
   const handleDelete = () => {
@@ -63,6 +69,9 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
           name: editName.trim(),
           email: editEmail.trim(),
           color: editColor,
+          slackUserId: editSlackUserId.trim() || null,
+          telegramChatId: editTelegramChatId.trim() || null,
+          notifyOnReminder: editNotifyOnReminder,
         })
         toast.success('Team member updated')
         setIsEditing(false)
@@ -76,6 +85,9 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
     setEditName(member.name)
     setEditEmail(member.email)
     setEditColor(member.color || '#6366f1')
+    setEditSlackUserId(member.slackUserId || '')
+    setEditTelegramChatId(member.telegramChatId || '')
+    setEditNotifyOnReminder(member.notifyOnReminder !== false)
     setIsEditing(false)
   }
 
@@ -116,6 +128,37 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
                   />
                 ))}
               </div>
+            </div>
+
+            {/* Notification Settings */}
+            <div className="pt-2 border-t border-gray-600 space-y-2">
+              <span className="text-sm text-gray-400">Notifications:</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`notify-${member.id}`}
+                  checked={editNotifyOnReminder}
+                  onChange={(e) => setEditNotifyOnReminder(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                />
+                <label htmlFor={`notify-${member.id}`} className="text-sm text-gray-300">
+                  Receive reminder notifications
+                </label>
+              </div>
+              <input
+                type="text"
+                value={editSlackUserId}
+                onChange={(e) => setEditSlackUserId(e.target.value)}
+                className="w-full px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Slack User ID (e.g., U01234567)"
+              />
+              <input
+                type="text"
+                value={editTelegramChatId}
+                onChange={(e) => setEditTelegramChatId(e.target.value)}
+                className="w-full px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Telegram Chat ID (optional)"
+              />
             </div>
           </div>
         ) : (

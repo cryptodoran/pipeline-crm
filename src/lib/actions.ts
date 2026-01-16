@@ -33,10 +33,11 @@ export async function createLead(data: {
   email?: string
   assigneeId?: string
   source?: string
+  initialNote?: string
 }) {
   // Validate input
   const validated = createLeadSchema.parse(data)
-  
+
   const lead = await prisma.lead.create({
     data: {
       name: validated.name,
@@ -53,6 +54,30 @@ export async function createLead(data: {
       stage: 'NEW',
     },
   })
+
+  // Add initial note if provided
+  if (data.initialNote && data.assigneeId) {
+    await prisma.note.create({
+      data: {
+        content: data.initialNote,
+        leadId: lead.id,
+        authorId: data.assigneeId,
+      },
+    })
+  } else if (data.initialNote) {
+    // If no assignee, try to get the first team member as author
+    const firstMember = await prisma.teamMember.findFirst()
+    if (firstMember) {
+      await prisma.note.create({
+        data: {
+          content: data.initialNote,
+          leadId: lead.id,
+          authorId: firstMember.id,
+        },
+      })
+    }
+  }
+
   revalidatePath('/')
   return lead
 }
@@ -257,7 +282,14 @@ export async function getTeamMember(id: string) {
   })
 }
 
-export async function updateTeamMember(id: string, data: { name?: string; email?: string; color?: string }) {
+export async function updateTeamMember(id: string, data: {
+  name?: string
+  email?: string
+  color?: string
+  slackUserId?: string | null
+  telegramChatId?: string | null
+  notifyOnReminder?: boolean
+}) {
   const member = await prisma.teamMember.update({
     where: { id },
     data,

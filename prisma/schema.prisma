@@ -51,6 +51,12 @@ model TeamMember {
   name       String
   email      String   @unique
   color      String   @default("#6366f1") // Team member color for visual identification
+
+  // Per-member notification settings
+  slackUserId       String?  // Slack user ID for @mentions (e.g., U01234567)
+  telegramChatId    String?  // Personal Telegram chat ID
+  notifyOnReminder  Boolean  @default(true) // Receive reminder notifications?
+
   leads      Lead[]
   notes      Note[]
   activities Activity[]
