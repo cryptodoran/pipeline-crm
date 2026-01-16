@@ -25,6 +25,8 @@ model Lead {
   assigneeId String?
   assignee   TeamMember? @relation(fields: [assigneeId], references: [id])
   stage      String      @default("NEW")
+  archived   Boolean     @default(false)  // Hide from main Kanban
+  archivedAt DateTime?   // When was it archived?
   
   // Source tracking
   source     String?     // Where did this lead come from?
@@ -103,4 +105,58 @@ model NotificationSettings {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Closed deals / Contracts with trading communities
+model Deal {
+  id                String   @id @default(cuid())
+  
+  // Basic info
+  communityName     String   // Trading community name
+  contactUsername   String?  // Contact point username
+  contactPlatform   String?  // telegram, discord, twitter, etc.
+  
+  // Financial terms
+  fee               Decimal? @db.Decimal(18, 2)  // Fee amount
+  referralCode      String?  // Their referral code
+  referralRevShare  Decimal? @db.Decimal(5, 2)   // Referral revenue share %
+  
+  // Token allocations
+  advisorTokenTotal     Decimal? @db.Decimal(18, 2)  // Advisor token total $$
+  advisorVestingSchedule String?  // e.g., "12 months linear", "6 month cliff + 24 months"
+  homeTokenAllocation   Decimal? @db.Decimal(5, 2)   // Home token allocation %
+  homeTokenThreshold    String?  // Threshold unlock conditions
+  
+  // Volume info
+  purportedVolume       String?  // Monthly or annual volume (text for flexibility)
+  volumePeriod          String?  // "monthly" or "annual"
+  
+  // Contract details
+  executedDate      DateTime?  // When the deal was signed
+  status            String     @default("ACTIVE") // ACTIVE, PAUSED, TERMINATED
+  notes             String?    // General notes
+  
+  // Payment tracking
+  nextPaymentDue    DateTime?  // When is next payment due
+  paymentFrequency  String?    // monthly, quarterly, etc.
+  
+  // Reminders
+  reminders         DealReminder[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DealReminder {
+  id          String    @id @default(cuid())
+  dealId      String
+  deal        Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  dueAt       DateTime
+  note        String?
+  type        String    @default("PAYMENT") // PAYMENT, VESTING, REVIEW, OTHER
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  notified    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

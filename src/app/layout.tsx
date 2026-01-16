@@ -31,6 +31,9 @@ export default function RootLayout({
                   <a href="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                     Board
                   </a>
+                  <a href="/deals" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
+                    Deals
+                  </a>
                   <a href="/team" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 text-sm font-medium">
                     Team
                   </a>

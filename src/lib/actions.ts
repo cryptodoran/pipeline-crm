@@ -110,8 +110,47 @@ export async function deleteLead(id: string) {
   revalidatePath('/')
 }
 
+export async function archiveLead(id: string) {
+  const lead = await prisma.lead.update({
+    where: { id },
+    data: { 
+      archived: true,
+      archivedAt: new Date(),
+    },
+  })
+  revalidatePath('/')
+  revalidatePath('/archived')
+  return lead
+}
+
+export async function unarchiveLead(id: string) {
+  const lead = await prisma.lead.update({
+    where: { id },
+    data: { 
+      archived: false,
+      archivedAt: null,
+    },
+  })
+  revalidatePath('/')
+  revalidatePath('/archived')
+  return lead
+}
+
+export async function bulkArchiveLeads(leadIds: string[]) {
+  await prisma.lead.updateMany({
+    where: { id: { in: leadIds } },
+    data: { 
+      archived: true,
+      archivedAt: new Date(),
+    },
+  })
+  revalidatePath('/')
+  revalidatePath('/archived')
+}
+
 export async function getLeads() {
   return prisma.lead.findMany({
+    where: { archived: false },
     include: {
       assignee: true,
       tags: true,
@@ -128,6 +167,21 @@ export async function getLeads() {
       },
     },
     orderBy: { createdAt: 'desc' },
+  })
+}
+
+export async function getArchivedLeads() {
+  return prisma.lead.findMany({
+    where: { archived: true },
+    include: {
+      assignee: true,
+      tags: true,
+      notes: {
+        include: { author: true },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
+    orderBy: { archivedAt: 'desc' },
   })
 }
 
