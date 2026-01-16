@@ -171,6 +171,16 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
             <div>
               <h3 className="font-medium text-white">{member.name}</h3>
               <p className="text-sm text-gray-400">{member.email}</p>
+              {member.slackUserId && (
+                <p className="text-xs text-purple-400 mt-0.5">
+                  Slack: {member.slackUserId}
+                </p>
+              )}
+              {!member.slackUserId && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  No Slack ID set
+                </p>
+              )}
             </div>
           </div>
         )}

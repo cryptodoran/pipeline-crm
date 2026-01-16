@@ -3,6 +3,11 @@
 import { prisma } from './db'
 import { revalidatePath } from 'next/cache'
 
+// Check if Slack webhook is configured via environment variable
+export function isSlackWebhookLocked(): boolean {
+  return !!process.env.SLACK_WEBHOOK_URL
+}
+
 // Get or create notification settings (singleton pattern)
 export async function getNotificationSettings() {
   let settings = await prisma.notificationSettings.findFirst()
@@ -99,8 +104,9 @@ export async function sendReminderNotification(reminderId: string) {
     }
   }
 
-  // Send via Slack (mention assignee if they have a Slack user ID)
-  if (settings.slackEnabled && settings.slackWebhookUrl) {
+  // Send via Slack (use env var for webhook, mention assignee if they have a Slack user ID)
+  const slackWebhook = process.env.SLACK_WEBHOOK_URL || settings.slackWebhookUrl
+  if (settings.slackEnabled && slackWebhook) {
     try {
       // If assignee has a Slack user ID, mention them
       const slackMessage = assignee?.slackUserId
@@ -108,7 +114,7 @@ export async function sendReminderNotification(reminderId: string) {
         : message
 
       await sendSlackNotification(
-        settings.slackWebhookUrl,
+        slackWebhook,
         slackMessage,
         settings.slackChannel || undefined
       )
@@ -184,8 +190,9 @@ export async function testNotificationChannel(channel: 'email' | 'telegram' | 's
         await sendTelegramNotification(settings.telegramBotToken, settings.telegramChatId, testMessage)
         break
       case 'slack':
-        if (!settings.slackWebhookUrl) throw new Error('Slack webhook not configured')
-        await sendSlackNotification(settings.slackWebhookUrl, testMessage, settings.slackChannel || undefined)
+        const webhookUrl = process.env.SLACK_WEBHOOK_URL || settings.slackWebhookUrl
+        if (!webhookUrl) throw new Error('Slack webhook not configured (set SLACK_WEBHOOK_URL env var)')
+        await sendSlackNotification(webhookUrl, testMessage, settings.slackChannel || undefined)
         break
     }
     return { success: true }

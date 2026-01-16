@@ -1,4 +1,4 @@
-import { getNotificationSettings } from '@/lib/notifications'
+import { getNotificationSettings, isSlackWebhookLocked } from '@/lib/notifications'
 import { requireAuth } from '@/lib/current-user'
 import { NotificationSettingsForm } from '@/components/notification-settings-form'
 import { Settings, Bell, Mail, MessageCircle } from 'lucide-react'
@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function SettingsPage() {
   await requireAuth()
   const settings = await getNotificationSettings()
+  const slackLocked = isSlackWebhookLocked()
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -31,7 +32,7 @@ export default async function SettingsPage() {
             Get notified when reminders are due. Configure one or more channels to receive alerts.
           </p>
 
-          <NotificationSettingsForm initialSettings={settings} />
+          <NotificationSettingsForm initialSettings={settings} slackWebhookLocked={slackLocked} />
         </div>
 
         {/* Integration Info */}
@@ -69,9 +70,9 @@ export default async function SettingsPage() {
               <div>
                 <h4 className="font-medium text-white">Slack</h4>
                 <p className="text-sm text-gray-400">
-                  1. Go to your Slack workspace settings → Apps → Incoming Webhooks<br/>
-                  2. Create a new webhook and select the channel<br/>
-                  3. Copy the webhook URL and paste it here
+                  The Slack webhook URL is set via the <code className="bg-gray-700 px-1 py-0.5 rounded text-xs text-gray-300">SLACK_WEBHOOK_URL</code> environment variable (admin only).<br/><br/>
+                  To tag team members in notifications, set their <strong>Slack User ID</strong> on the Team page.<br/>
+                  Find user IDs in Slack: click a profile → More → Copy member ID.
                 </p>
               </div>
             </div>

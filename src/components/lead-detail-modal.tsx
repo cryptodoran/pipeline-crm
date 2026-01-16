@@ -6,7 +6,6 @@ import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
 import { updateLead, deleteLead, addNote, assignLead, updateLeadStage, archiveLead } from '@/lib/actions'
 import { TagInput } from './tag-input'
 import { ReminderForm } from './reminder-form'
-import { QuickActions } from './quick-actions'
 import { toast } from 'sonner'
 
 type Tag = {
@@ -316,16 +315,6 @@ export function LeadDetailModal({
               </>
             )}
           </div>
-
-          {/* Quick Actions */}
-          {!isEditing && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Quick Actions
-              </label>
-              <QuickActions leadId={lead.id} leadName={lead.name} />
-            </div>
-          )}
 
           {/* Notes section */}
           <div>
