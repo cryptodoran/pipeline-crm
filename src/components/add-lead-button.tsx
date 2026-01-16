@@ -71,6 +71,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
   return (
     <>
       <button
+        data-add-lead-button
         onClick={() => setIsOpen(true)}
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >
@@ -82,10 +83,10 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
 
-          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Add New Lead</h2>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Lead</h2>
+              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -93,7 +94,7 @@ export function AddLeadButton({ teamMembers }: AddLeadButtonProps) {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Name - Required */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Name <span className="text-red-500">*</span>
                 </label>
                 <input

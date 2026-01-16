@@ -130,9 +130,9 @@ export function LeadCard({
         style={style}
         {...(selectionMode ? {} : { ...listeners, ...attributes })}
         onClick={handleClick}
-        className={`bg-white rounded-lg p-3 shadow-sm border-2 hover:shadow-md transition-all ${
+        className={`bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border-2 hover:shadow-md transition-all ${
           isDragging ? 'shadow-lg opacity-90' : ''
-        } ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'} ${
+        } ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'} ${
           selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
         }`}
       >
@@ -144,13 +144,13 @@ export function LeadCard({
                 className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                   isSelected
                     ? 'bg-blue-500 border-blue-500'
-                    : 'border-gray-300 hover:border-blue-400'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
                 }`}
               >
                 {isSelected && <Check className="w-3 h-3 text-white" />}
               </div>
             )}
-            <h4 className="font-medium text-gray-900 truncate">{lead.name}</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white truncate">{lead.name}</h4>
             {lead.reminders && lead.reminders.length > 0 && (
               <div
                 className={`flex-shrink-0 ${
@@ -182,7 +182,7 @@ export function LeadCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => e.stopPropagation()}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 title={`${platform}: ${handle}`}
               >
                 <Icon className="w-4 h-4" />
@@ -201,14 +201,14 @@ export function LeadCard({
         {/* Source badge */}
         {lead.source && (
           <div className="mb-2">
-            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${SOURCE_COLORS[lead.source] || 'bg-gray-100 text-gray-700'}`}>
+            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${SOURCE_COLORS[lead.source] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
               {lead.source}
             </span>
           </div>
         )}
 
         {/* Assignee and notes count */}
-        <div className="flex justify-between items-center text-xs text-gray-500">
+        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1">
             {lead.assignee ? (
               <>
@@ -216,7 +216,7 @@ export function LeadCard({
                 <span className="truncate max-w-[80px]">{lead.assignee.name}</span>
               </>
             ) : (
-              <span className="text-gray-400">Unassigned</span>
+              <span className="text-gray-400 dark:text-gray-500">Unassigned</span>
             )}
           </div>
           {lead.notes.length > 0 && (
