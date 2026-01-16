@@ -1,12 +1,13 @@
-import { getLeads, getTeamMembers } from '@/lib/actions'
+import { getLeads, getTeamMembers, getTags } from '@/lib/actions'
 import { PIPELINE_STAGES, STAGE_LABELS, STAGE_COLORS, PipelineStage } from '@/lib/types'
 import { KanbanBoard } from '@/components/kanban-board'
 import { AddLeadButton } from '@/components/add-lead-button'
 
 export default async function Home() {
-  const [leads, teamMembers] = await Promise.all([
+  const [leads, teamMembers, tags] = await Promise.all([
     getLeads(),
     getTeamMembers(),
+    getTags(),
   ])
 
   // Group leads by stage
@@ -28,6 +29,7 @@ export default async function Home() {
       <KanbanBoard
         leadsByStage={leadsByStage}
         teamMembers={teamMembers}
+        availableTags={tags}
         stages={PIPELINE_STAGES}
         stageLabels={STAGE_LABELS}
         stageColors={STAGE_COLORS}

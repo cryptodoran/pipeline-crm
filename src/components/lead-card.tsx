@@ -15,12 +15,21 @@ import {
   Instagram,
   Mail,
   User,
+  Check,
+  Bell,
 } from 'lucide-react'
 
 type Tag = {
   id: string
   name: string
   color: string
+}
+
+type Reminder = {
+  id: string
+  dueAt: Date
+  note: string | null
+  completed: boolean
 }
 
 type Lead = {
@@ -37,6 +46,7 @@ type Lead = {
   email: string | null
   assignee: { id: string; name: string; email: string } | null
   tags?: Tag[]
+  reminders?: Reminder[]
   notes: Array<{
     id: string
     content: string
@@ -54,7 +64,11 @@ type TeamMember = {
 interface LeadCardProps {
   lead: Lead
   teamMembers: TeamMember[]
+  availableTags?: Tag[]
   isDragging?: boolean
+  selectionMode?: boolean
+  isSelected?: boolean
+  onSelectionChange?: (leadId: string, selected: boolean) => void
 }
 
 const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ className?: string }>> = {
@@ -68,11 +82,20 @@ const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ className?: str
   email: Mail,
 }
 
-export function LeadCard({ lead, teamMembers, isDragging }: LeadCardProps) {
+export function LeadCard({
+  lead,
+  teamMembers,
+  availableTags = [],
+  isDragging,
+  selectionMode = false,
+  isSelected = false,
+  onSelectionChange,
+}: LeadCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: lead.id,
+    disabled: selectionMode,
   })
 
   const style = transform
@@ -86,20 +109,62 @@ export function LeadCard({ lead, teamMembers, isDragging }: LeadCardProps) {
     platform => lead[platform]
   )
 
+  const handleClick = () => {
+    if (selectionMode) {
+      onSelectionChange?.(lead.id, !isSelected)
+    } else {
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onSelectionChange?.(lead.id, !isSelected)
+  }
+
   return (
     <>
       <div
         ref={setNodeRef}
         style={style}
-        {...listeners}
-        {...attributes}
-        onClick={() => setIsModalOpen(true)}
-        className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow ${
+        {...(selectionMode ? {} : { ...listeners, ...attributes })}
+        onClick={handleClick}
+        className={`bg-white rounded-lg p-3 shadow-sm border-2 hover:shadow-md transition-all ${
           isDragging ? 'shadow-lg opacity-90' : ''
+        } ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'} ${
+          selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
         }`}
       >
         <div className="flex justify-between items-start mb-2">
-          <h4 className="font-medium text-gray-900 truncate">{lead.name}</h4>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {selectionMode && (
+              <div
+                onClick={handleCheckboxClick}
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  isSelected
+                    ? 'bg-blue-500 border-blue-500'
+                    : 'border-gray-300 hover:border-blue-400'
+                }`}
+              >
+                {isSelected && <Check className="w-3 h-3 text-white" />}
+              </div>
+            )}
+            <h4 className="font-medium text-gray-900 truncate">{lead.name}</h4>
+            {lead.reminders && lead.reminders.length > 0 && (
+              <div
+                className={`flex-shrink-0 ${
+                  new Date(lead.reminders[0].dueAt) <= new Date()
+                    ? 'text-red-500'
+                    : new Date(lead.reminders[0].dueAt) <= new Date(Date.now() + 24 * 60 * 60 * 1000)
+                    ? 'text-amber-500'
+                    : 'text-blue-500'
+                }`}
+                title={`Reminder: ${new Date(lead.reminders[0].dueAt).toLocaleDateString()}`}
+              >
+                <Bell className="w-4 h-4" />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Social icons */}
@@ -153,6 +218,7 @@ export function LeadCard({ lead, teamMembers, isDragging }: LeadCardProps) {
       <LeadDetailModal
         lead={lead}
         teamMembers={teamMembers}
+        availableTags={availableTags}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

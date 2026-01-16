@@ -1,9 +1,17 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { X, Trash2, ExternalLink } from 'lucide-react'
+import { X, Trash2, ExternalLink, Clock } from 'lucide-react'
 import { SOCIAL_URLS, SocialPlatform, PIPELINE_STAGES, STAGE_LABELS, PipelineStage } from '@/lib/types'
 import { updateLead, deleteLead, addNote, assignLead, updateLeadStage } from '@/lib/actions'
+import { TagInput } from './tag-input'
+import { ReminderForm } from './reminder-form'
+
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
 
 type Lead = {
   id: string
@@ -18,6 +26,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
+  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
@@ -35,6 +44,7 @@ type TeamMember = {
 interface LeadDetailModalProps {
   lead: Lead
   teamMembers: TeamMember[]
+  availableTags?: Tag[]
   isOpen: boolean
   onClose: () => void
 }
@@ -42,12 +52,14 @@ interface LeadDetailModalProps {
 export function LeadDetailModal({
   lead,
   teamMembers,
+  availableTags = [],
   isOpen,
   onClose,
 }: LeadDetailModalProps) {
   const [isPending, startTransition] = useTransition()
   const [noteContent, setNoteContent] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showReminderForm, setShowReminderForm] = useState(false)
 
   if (!isOpen) return null
 
@@ -102,12 +114,21 @@ export function LeadDetailModal({
               Created {new Date(lead.notes[lead.notes.length - 1]?.createdAt || Date.now()).toLocaleDateString()}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowReminderForm(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm font-medium"
+            >
+              <Clock className="w-4 h-4" />
+              Set Reminder
+            </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Body */}
@@ -150,6 +171,13 @@ export function LeadDetailModal({
               ))}
             </select>
           </div>
+
+          {/* Tags */}
+          <TagInput
+            leadId={lead.id}
+            selectedTags={lead.tags || []}
+            availableTags={availableTags}
+          />
 
           {/* Social handles */}
           <div>
@@ -261,6 +289,15 @@ export function LeadDetailModal({
           </button>
         </div>
       </div>
+
+      {/* Reminder Form Modal */}
+      {showReminderForm && (
+        <ReminderForm
+          leadId={lead.id}
+          leadName={lead.name}
+          onClose={() => setShowReminderForm(false)}
+        />
+      )}
     </div>
   )
 }

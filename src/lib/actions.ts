@@ -97,6 +97,13 @@ export async function getLeads() {
         include: { author: true },
         orderBy: { createdAt: 'desc' },
       },
+      reminders: {
+        where: {
+          completed: false,
+        },
+        orderBy: { dueAt: 'asc' },
+        take: 1,
+      },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -253,4 +260,176 @@ export async function getLeadWithTags(id: string) {
       },
     },
   })
+}
+
+// ============================================================================
+// REMINDER ACTIONS
+// ============================================================================
+
+export async function createReminder(data: {
+  leadId: string
+  dueAt: Date
+  note?: string
+}) {
+  const reminder = await prisma.reminder.create({
+    data: {
+      leadId: data.leadId,
+      dueAt: data.dueAt,
+      note: data.note || null,
+    },
+    include: { lead: true },
+  })
+  revalidatePath('/')
+  revalidatePath('/reminders')
+  return reminder
+}
+
+export async function getReminders() {
+  return prisma.reminder.findMany({
+    where: { completed: false },
+    include: {
+      lead: {
+        include: { assignee: true },
+      },
+    },
+    orderBy: { dueAt: 'asc' },
+  })
+}
+
+export async function getRemindersForLead(leadId: string) {
+  return prisma.reminder.findMany({
+    where: { leadId },
+    orderBy: { dueAt: 'asc' },
+  })
+}
+
+export async function getTodaysReminders() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  return prisma.reminder.findMany({
+    where: {
+      completed: false,
+      dueAt: {
+        gte: today,
+        lt: tomorrow,
+      },
+    },
+    include: {
+      lead: {
+        include: { assignee: true },
+      },
+    },
+    orderBy: { dueAt: 'asc' },
+  })
+}
+
+export async function getUpcomingReminders() {
+  const now = new Date()
+
+  return prisma.reminder.findMany({
+    where: {
+      completed: false,
+      dueAt: { gte: now },
+    },
+    include: {
+      lead: {
+        include: { assignee: true },
+      },
+    },
+    orderBy: { dueAt: 'asc' },
+    take: 20,
+  })
+}
+
+export async function getOverdueReminders() {
+  const now = new Date()
+
+  return prisma.reminder.findMany({
+    where: {
+      completed: false,
+      dueAt: { lt: now },
+    },
+    include: {
+      lead: {
+        include: { assignee: true },
+      },
+    },
+    orderBy: { dueAt: 'asc' },
+  })
+}
+
+export async function completeReminder(id: string) {
+  const reminder = await prisma.reminder.update({
+    where: { id },
+    data: {
+      completed: true,
+      completedAt: new Date(),
+    },
+  })
+  revalidatePath('/')
+  revalidatePath('/reminders')
+  return reminder
+}
+
+export async function snoozeReminder(id: string, days: number) {
+  const reminder = await prisma.reminder.findUnique({ where: { id } })
+  if (!reminder) throw new Error('Reminder not found')
+
+  const newDueAt = new Date(reminder.dueAt)
+  newDueAt.setDate(newDueAt.getDate() + days)
+
+  const updated = await prisma.reminder.update({
+    where: { id },
+    data: { dueAt: newDueAt },
+  })
+  revalidatePath('/')
+  revalidatePath('/reminders')
+  return updated
+}
+
+export async function deleteReminder(id: string) {
+  await prisma.reminder.delete({ where: { id } })
+  revalidatePath('/')
+  revalidatePath('/reminders')
+}
+
+// ============================================================================
+// BULK ACTIONS
+// ============================================================================
+
+export async function bulkAssignLeads(leadIds: string[], teamMemberId: string | null) {
+  await prisma.lead.updateMany({
+    where: { id: { in: leadIds } },
+    data: { assigneeId: teamMemberId },
+  })
+
+  // Add a note about the bulk assignment
+  if (teamMemberId) {
+    const teamMember = await prisma.teamMember.findUnique({ where: { id: teamMemberId } })
+    if (teamMember) {
+      for (const leadId of leadIds) {
+        await prisma.note.create({
+          data: {
+            content: `Bulk assigned to ${teamMember.name}`,
+            leadId,
+            authorId: teamMemberId,
+          },
+        })
+      }
+    }
+  }
+
+  revalidatePath('/')
+}
+
+export async function bulkMoveLeads(leadIds: string[], stage: string) {
+  await prisma.lead.updateMany({
+    where: { id: { in: leadIds } },
+    data: { stage },
+  })
+
+  revalidatePath('/')
 }

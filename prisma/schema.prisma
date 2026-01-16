@@ -31,6 +31,7 @@ model Lead {
 
   // History
   notes     Note[]
+  reminders Reminder[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -61,4 +62,16 @@ model Tag {
   leads     Lead[]   @relation("LeadTags")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Reminder {
+  id          String    @id @default(cuid())
+  leadId      String
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  dueAt       DateTime
+  note        String?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

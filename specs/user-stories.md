@@ -4,6 +4,80 @@
 
 ---
 
+## Epic 0: Critical Fixes & Deployment (Priority: P0)
+
+### Story 0.1: Ensure Vercel Deployment Works
+
+**As** a team member,
+**I want** the CRM to deploy successfully to Vercel,
+**So that** everyone can access it.
+
+**Scenario:**
+```
+Given code is pushed to GitHub
+When Vercel builds the project
+Then build succeeds without errors
+And DATABASE_URL is properly configured
+And all pages load correctly
+```
+
+**Acceptance Criteria:**
+- [ ] Verify DATABASE_URL is set in Vercel environment
+- [ ] Run `npm run build` locally to catch errors before push
+- [ ] Ensure Prisma generates client during build
+- [ ] Test all routes after deployment
+- [ ] Verify database connection works in production
+
+---
+
+### Story 0.2: Complete Tags Implementation
+
+**As** a team member,
+**I want** to tag leads with custom labels,
+**So that** I can organize and filter leads my way.
+
+**Scenario:**
+```
+Given I'm viewing a lead
+When I add tags "VIP" and "Web3"
+Then tags appear on the lead card
+And I can filter Kanban by tag
+```
+
+**Acceptance Criteria:**
+- [ ] Tag model exists in database (DONE)
+- [ ] Server actions for tag CRUD
+- [ ] Tag input component with autocomplete
+- [ ] Tags displayed on lead cards
+- [ ] Tag filter in Kanban toolbar
+- [ ] /tags management page
+
+---
+
+### Story 0.3: Fix Any Build Errors
+
+**As** a developer,
+**I want** the build to pass without errors,
+**So that** deployment works reliably.
+
+**Scenario:**
+```
+Given I run npm run build
+When build completes
+Then there are no TypeScript errors
+And no missing dependencies
+And all imports resolve correctly
+```
+
+**Acceptance Criteria:**
+- [ ] npm run build passes locally
+- [ ] No TypeScript strict mode violations
+- [ ] All imports valid
+- [ ] Prisma client generated
+- [ ] Environment variables documented
+
+---
+
 ## Epic 1: Lead Capture
 
 ### Story 1.1: Capturing a Conference Contact
@@ -1017,6 +1091,969 @@ And I receive the lead ID in response
 
 ---
 
+## Epic 26: Company/Organization Grouping
+
+### Story 26.1: Linking Leads to Companies
+
+**As** a B2B sales team member,
+**I want** to group multiple leads under one company,
+**So that** I can see all our contacts at an organization.
+
+**Scenario:**
+```
+Given I have 3 leads from "Acme Corp"
+When I create a Company "Acme Corp"
+And link all 3 leads to it
+Then I can view the company page showing all contacts
+And see total engagement across all leads
+```
+
+**Acceptance Criteria:**
+- [ ] Company model in database
+- [ ] Company creation form
+- [ ] Link lead to company dropdown
+- [ ] Company detail page showing all linked leads
+- [ ] Company list view with lead counts
+
+---
+
+## Epic 27: Deal Value & Revenue Tracking
+
+### Story 27.1: Adding Deal Value to Leads
+
+**As** a sales manager tracking revenue,
+**I want** to add a dollar value to each lead,
+**So that** I can see pipeline value by stage.
+
+**Scenario:**
+```
+Given I'm editing a lead in Proposal stage
+When I add Deal Value: $50,000
+Then the value shows on the lead card
+And the pipeline shows total value per stage
+And I can sort leads by value
+```
+
+**Acceptance Criteria:**
+- [ ] Deal value field on Lead model
+- [ ] Currency input in lead form
+- [ ] Value displayed on lead cards
+- [ ] Total pipeline value per stage
+- [ ] Sort by value option
+- [ ] Won/Lost revenue reports
+
+---
+
+## Epic 28: Lead Comments & Mentions
+
+### Story 28.1: @Mentioning Team Members
+
+**As** a team member needing input,
+**I want** to @mention colleagues in notes,
+**So that** they get notified and can respond.
+
+**Scenario:**
+```
+Given I'm adding a note to a lead
+When I type "@sarah need your input on pricing"
+Then Sarah gets a notification
+And the mention is highlighted in the note
+And Sarah can click to jump to the lead
+```
+
+**Acceptance Criteria:**
+- [ ] @mention autocomplete in note input
+- [ ] Mention highlighting in notes
+- [ ] Notification when mentioned
+- [ ] Click mention to view team member
+- [ ] "Mentions" filter in activity feed
+
+---
+
+## Epic 29: Lead Timeline Visualization
+
+### Story 29.1: Visual Journey Timeline
+
+**As** a team member reviewing a lead's history,
+**I want** to see a visual timeline of all events,
+**So that** I understand the full journey at a glance.
+
+**Scenario:**
+```
+Given I open a lead's detail page
+When I click "Timeline" tab
+Then I see a vertical timeline showing:
+  - Created (Jan 1)
+  - Stage: New → Contacted (Jan 3)
+  - Note added by Bob (Jan 5)
+  - Stage: Contacted → Qualified (Jan 10)
+  - Reminder set (Jan 12)
+```
+
+**Acceptance Criteria:**
+- [ ] Timeline component with vertical layout
+- [ ] Event types: stage changes, notes, reminders, assignments
+- [ ] Timestamps with relative dates
+- [ ] Event icons by type
+- [ ] Expandable event details
+
+---
+
+## Epic 30: Saved Views & Filters
+
+### Story 30.1: Saving Custom Filter Views
+
+**As** a team member with specific workflows,
+**I want** to save my filter combinations as named views,
+**So that** I can quickly switch between them.
+
+**Scenario:**
+```
+Given I filter by "My Leads" + "Has Twitter" + "Contacted stage"
+When I click "Save View" and name it "Twitter Outreach"
+Then the view appears in my sidebar
+And clicking it applies all those filters instantly
+```
+
+**Acceptance Criteria:**
+- [ ] Save current filters as named view
+- [ ] Views list in sidebar
+- [ ] Click to apply view filters
+- [ ] Edit/rename/delete views
+- [ ] Personal vs shared views option
+
+---
+
+## Epic 31: Slack Integration
+
+### Story 31.1: Posting Lead Updates to Slack
+
+**As** a team using Slack for communication,
+**I want** CRM updates posted to a Slack channel,
+**So that** everyone stays informed without checking the CRM.
+
+**Scenario:**
+```
+Given Slack integration is configured
+When a lead moves to "Won"
+Then a message posts to #sales-wins:
+  "🎉 Alex Chen moved Maya Studios to Won! Deal value: $50k"
+```
+
+**Acceptance Criteria:**
+- [ ] Slack OAuth integration
+- [ ] Channel selection in settings
+- [ ] Configurable notification triggers
+- [ ] Rich message formatting
+- [ ] Link back to CRM lead
+
+---
+
+## Epic 32: Calendar Integration
+
+### Story 32.1: Syncing Reminders to Google Calendar
+
+**As** a team member using Google Calendar,
+**I want** my CRM reminders to appear on my calendar,
+**So that** I don't miss follow-ups.
+
+**Scenario:**
+```
+Given I set a reminder "Call Alex Tuesday 2pm"
+When the reminder syncs
+Then it appears in my Google Calendar
+With link back to the lead in CRM
+```
+
+**Acceptance Criteria:**
+- [ ] Google Calendar OAuth
+- [ ] Reminder → Calendar event sync
+- [ ] Two-way sync (calendar changes reflect in CRM)
+- [ ] Calendar event includes CRM link
+- [ ] Disconnect calendar option
+
+---
+
+## Epic 33: Lead Engagement Analytics
+
+### Story 33.1: Tracking Lead Response Times
+
+**As** a team lead,
+**I want** to see how quickly my team responds to new leads,
+**So that** I can improve our responsiveness.
+
+**Scenario:**
+```
+Given I view the analytics dashboard
+When I check "Response Times"
+Then I see average time from NEW to CONTACTED
+Broken down by team member
+With trend line over past 30 days
+```
+
+**Acceptance Criteria:**
+- [ ] Calculate time between stage transitions
+- [ ] Average response time metric
+- [ ] Per-team-member breakdown
+- [ ] Historical trend chart
+- [ ] Export analytics data
+
+---
+
+### Story 33.2: Pipeline Velocity Report
+
+**As** a sales manager,
+**I want** to see how long leads stay in each stage,
+**So that** I can identify bottlenecks.
+
+**Scenario:**
+```
+Given leads move through the pipeline
+When I view velocity report
+Then I see average days per stage
+With visualization of flow
+And comparison to previous period
+```
+
+**Acceptance Criteria:**
+- [ ] Track time in each stage
+- [ ] Funnel visualization
+- [ ] Stage-by-stage breakdown
+- [ ] Period comparison
+- [ ] Identify stuck leads
+
+---
+
+## Epic 34: Smart Lead Assignment
+
+### Story 34.1: Round-Robin Auto-Assignment
+
+**As** a team lead,
+**I want** new leads to be automatically assigned to team members,
+**So that** work is distributed fairly.
+
+**Scenario:**
+```
+Given auto-assignment is enabled
+When a new lead is created without assignee
+Then it's assigned to the next team member in rotation
+And notification is sent to them
+```
+
+**Acceptance Criteria:**
+- [ ] Enable/disable auto-assignment
+- [ ] Round-robin algorithm
+- [ ] Skip unavailable team members
+- [ ] Assignment notification
+- [ ] Manual override option
+
+---
+
+### Story 34.2: Workload-Based Assignment
+
+**As** a team lead,
+**I want** leads assigned based on current workload,
+**So that** no one gets overwhelmed.
+
+**Scenario:**
+```
+Given workload-based assignment is enabled
+When a new lead arrives
+Then it's assigned to the team member with fewest active leads
+Respecting maximum lead count settings
+```
+
+**Acceptance Criteria:**
+- [ ] Count active leads per member
+- [ ] Maximum lead setting per member
+- [ ] Workload balancing algorithm
+- [ ] Visual workload indicator
+- [ ] Re-balance existing leads option
+
+---
+
+## Epic 35: Lead Communication Log
+
+### Story 35.1: Logging External Communications
+
+**As** a team member,
+**I want** to log emails and calls I make outside the CRM,
+**So that** the team has complete communication history.
+
+**Scenario:**
+```
+Given I'm viewing a lead
+When I click "Log Communication"
+Then I can select type (Email, Call, Meeting, Message)
+And enter summary and outcome
+And it appears in the lead's timeline
+```
+
+**Acceptance Criteria:**
+- [ ] Communication type selection
+- [ ] Date/time picker (defaults to now)
+- [ ] Summary text field
+- [ ] Outcome selection (Positive, Neutral, Negative)
+- [ ] Timeline integration
+
+---
+
+### Story 35.2: Email Forwarding to CRM
+
+**As** a team member,
+**I want** to forward emails to CRM for automatic logging,
+**So that** I don't have to manually copy content.
+
+**Scenario:**
+```
+Given I receive an email from a lead
+When I forward it to leads@mycrm.pipeline
+Then the email content is extracted
+And added as a note to the matching lead
+```
+
+**Acceptance Criteria:**
+- [ ] Unique CRM email address
+- [ ] Parse forwarded email content
+- [ ] Match sender to lead (by email)
+- [ ] Create note with email body
+- [ ] Handle attachments
+
+---
+
+## Epic 36: Custom Fields
+
+### Story 36.1: Adding Custom Fields to Leads
+
+**As** an admin,
+**I want** to add custom fields to the lead form,
+**So that** we can capture industry-specific data.
+
+**Scenario:**
+```
+Given I'm in settings
+When I add custom field "Company Size"
+With type "Select" and options S/M/L/Enterprise
+Then the field appears on all lead forms
+And data is stored and searchable
+```
+
+**Acceptance Criteria:**
+- [ ] Admin-only field management
+- [ ] Field types: Text, Number, Select, Date, Checkbox
+- [ ] Required/optional setting
+- [ ] Default value option
+- [ ] Search and filter by custom fields
+
+---
+
+### Story 36.2: Conditional Field Display
+
+**As** an admin,
+**I want** some fields to only show based on other field values,
+**So that** forms stay clean and relevant.
+
+**Scenario:**
+```
+Given I configure "Contract Value" field
+When I set condition "Stage = Proposal or later"
+Then the field only appears for leads in those stages
+```
+
+**Acceptance Criteria:**
+- [ ] Conditional visibility rules
+- [ ] Multiple conditions (AND/OR)
+- [ ] Stage-based conditions
+- [ ] Tag-based conditions
+- [ ] Custom field-based conditions
+
+---
+
+## Epic 37: Lead Nurturing Sequences
+
+### Story 37.1: Creating Follow-up Sequences
+
+**As** a team member,
+**I want** to enroll leads in automated follow-up sequences,
+**So that** I don't forget to check in regularly.
+
+**Scenario:**
+```
+Given I have a "New Lead Nurture" sequence
+When I enroll a lead
+Then reminders are created automatically
+Day 1: Initial follow-up
+Day 3: Check in
+Day 7: Value add touch
+Day 14: Re-engagement
+```
+
+**Acceptance Criteria:**
+- [ ] Create/edit sequences
+- [ ] Define steps with delays
+- [ ] Enroll/unenroll leads
+- [ ] Pause/resume sequence
+- [ ] Auto-exit on stage change
+
+---
+
+### Story 37.2: Sequence Analytics
+
+**As** a team lead,
+**I want** to see how effective our sequences are,
+**So that** we can optimize them.
+
+**Scenario:**
+```
+Given leads are in sequences
+When I view sequence analytics
+Then I see completion rate, drop-off points
+And conversion rate for sequenced vs non-sequenced leads
+```
+
+**Acceptance Criteria:**
+- [ ] Sequence completion rate
+- [ ] Step-by-step drop-off
+- [ ] Conversion comparison
+- [ ] Best performing sequences
+- [ ] A/B test sequences
+
+---
+
+## Epic 38: Lead Merge & Deduplication
+
+### Story 38.1: Manual Lead Merge
+
+**As** a team member,
+**I want** to merge two duplicate leads into one,
+**So that** all information is consolidated.
+
+**Scenario:**
+```
+Given I identify two leads as duplicates
+When I select "Merge Leads"
+Then I choose which fields to keep from each
+All notes are combined chronologically
+And the duplicate is removed
+```
+
+**Acceptance Criteria:**
+- [ ] Side-by-side field comparison
+- [ ] Select winning value per field
+- [ ] Merge all notes preserving dates
+- [ ] Merge all tags
+- [ ] Redirect old lead references
+
+---
+
+### Story 38.2: Automatic Duplicate Detection
+
+**As** a team member,
+**I want** the system to warn me about potential duplicates,
+**So that** I don't create duplicate leads.
+
+**Scenario:**
+```
+Given I'm creating a new lead "John Smith"
+When the system finds existing "John Smith" or matching email
+Then I see a warning with potential matches
+And can choose to view existing or continue creating
+```
+
+**Acceptance Criteria:**
+- [ ] Real-time duplicate check on create
+- [ ] Match on name (fuzzy)
+- [ ] Match on email (exact)
+- [ ] Match on social handles
+- [ ] Confidence score for matches
+
+---
+
+## Epic 39: Audit Trail & History
+
+### Story 39.1: Viewing Lead Change History
+
+**As** a team member,
+**I want** to see all changes made to a lead,
+**So that** I understand how the lead evolved.
+
+**Scenario:**
+```
+Given I open lead history
+Then I see chronological list of all changes
+Who made each change and when
+Previous and new values for each field
+```
+
+**Acceptance Criteria:**
+- [ ] Log all field changes
+- [ ] Record user and timestamp
+- [ ] Show before/after values
+- [ ] Filter by field or user
+- [ ] Export history
+
+---
+
+### Story 39.2: System-wide Audit Log
+
+**As** an admin,
+**I want** to see all system changes,
+**So that** I can track team activity and investigate issues.
+
+**Scenario:**
+```
+Given I access the audit log
+Then I see all actions across the system
+Filterable by user, action type, date range
+With details of each change
+```
+
+**Acceptance Criteria:**
+- [ ] Centralized audit log
+- [ ] Filter by user
+- [ ] Filter by action type
+- [ ] Date range filter
+- [ ] Export audit data
+
+---
+
+## Epic 40: Data Backup & Recovery
+
+### Story 40.1: Exporting Full Backup
+
+**As** an admin,
+**I want** to export a complete backup of all CRM data,
+**So that** we have disaster recovery capability.
+
+**Scenario:**
+```
+Given I'm in admin settings
+When I click "Export Full Backup"
+Then all data is exported in standard format
+Including leads, notes, team members, tags
+With option to restore later
+```
+
+**Acceptance Criteria:**
+- [ ] Full data export (JSON/CSV)
+- [ ] Include all models
+- [ ] Include relationships
+- [ ] Downloadable file
+- [ ] Encrypted option
+
+---
+
+### Story 40.2: Restoring from Backup
+
+**As** an admin,
+**I want** to restore CRM from a backup,
+**So that** we can recover from data loss.
+
+**Scenario:**
+```
+Given I have a backup file
+When I upload and confirm restore
+Then all data is restored to that point
+With option for full replace or merge
+```
+
+**Acceptance Criteria:**
+- [ ] Upload backup file
+- [ ] Validate backup integrity
+- [ ] Preview changes before restore
+- [ ] Full replace or merge option
+- [ ] Rollback if restore fails
+
+---
+
+## Epic 41: Lead Scoring Rules Engine
+
+### Story 41.1: Configuring Scoring Rules
+
+**As** an admin,
+**I want** to define custom scoring rules for leads,
+**So that** we can identify high-potential leads automatically.
+
+**Scenario:**
+```
+Given I'm in scoring settings
+When I add rule "+10 points if has Email"
+And I add rule "+20 points if stage is Engaged+"
+Then all leads are scored automatically
+And high scores are highlighted
+```
+
+**Acceptance Criteria:**
+- [ ] Admin scoring rules UI
+- [ ] Rule conditions (field equals, contains, exists)
+- [ ] Point values per rule
+- [ ] Auto-recalculate on lead changes
+- [ ] Score history tracking
+
+---
+
+### Story 41.2: Score-Based Lead Prioritization
+
+**As** a team member,
+**I want** to see leads sorted by score,
+**So that** I focus on the most promising ones.
+
+**Scenario:**
+```
+Given leads have scores
+When I click "Sort by Score"
+Then leads are ordered highest to lowest
+With score badge visible on each card
+```
+
+**Acceptance Criteria:**
+- [ ] Sort by score option
+- [ ] Score badge on lead cards
+- [ ] "Hot lead" indicator for top scores
+- [ ] Score breakdown tooltip
+- [ ] Filter by score range
+
+---
+
+## Epic 42: Email Integration
+
+### Story 42.1: Connecting Gmail Account
+
+**As** a team member,
+**I want** to connect my Gmail account,
+**So that** emails with leads are automatically logged.
+
+**Scenario:**
+```
+Given I connect my Gmail via OAuth
+When I send/receive email to/from a lead's email
+Then the email appears in that lead's timeline
+With subject, snippet, and timestamp
+```
+
+**Acceptance Criteria:**
+- [ ] Gmail OAuth integration
+- [ ] Match emails by lead email address
+- [ ] Log incoming and outgoing emails
+- [ ] Show email in lead timeline
+- [ ] Link to view full email in Gmail
+
+---
+
+### Story 42.2: Sending Email from CRM
+
+**As** a team member,
+**I want** to compose and send emails from within the CRM,
+**So that** I don't have to switch between apps.
+
+**Scenario:**
+```
+Given I'm viewing a lead
+When I click "Send Email"
+Then I compose email with lead's email prefilled
+And email is sent via my connected Gmail
+And it's logged in the timeline
+```
+
+**Acceptance Criteria:**
+- [ ] Email compose modal
+- [ ] Rich text editor
+- [ ] Template insertion
+- [ ] Send via Gmail API
+- [ ] Auto-log in timeline
+
+---
+
+## Epic 43: Task Management
+
+### Story 43.1: Creating Tasks for Leads
+
+**As** a team member,
+**I want** to create tasks associated with leads,
+**So that** I track what needs to be done.
+
+**Scenario:**
+```
+Given I'm viewing a lead
+When I click "Add Task"
+And enter "Send proposal" due tomorrow
+Then the task appears in lead detail
+And in my tasks list
+```
+
+**Acceptance Criteria:**
+- [ ] Create task with title, description, due date
+- [ ] Assign task to team member
+- [ ] Task appears in lead detail
+- [ ] Personal "My Tasks" page
+- [ ] Mark task complete
+
+---
+
+### Story 43.2: Task Reminders
+
+**As** a team member,
+**I want** to be reminded about upcoming tasks,
+**So that** I don't miss deadlines.
+
+**Scenario:**
+```
+Given I have a task due tomorrow
+When tomorrow arrives
+Then I see a notification
+And the task appears in "Today's Tasks"
+```
+
+**Acceptance Criteria:**
+- [ ] Due date reminders
+- [ ] Overdue task highlighting
+- [ ] "Today's Tasks" section
+- [ ] Task priority levels
+- [ ] Snooze task option
+
+---
+
+## Epic 44: Team Collaboration Features
+
+### Story 44.1: @Mentioning Team Members
+
+**As** a team member,
+**I want** to @mention colleagues in notes,
+**So that** they're notified about relevant leads.
+
+**Scenario:**
+```
+Given I'm adding a note to a lead
+When I type "@sarah needs to review"
+Then Sarah gets a notification
+With link to the lead
+```
+
+**Acceptance Criteria:**
+- [ ] @mention autocomplete
+- [ ] Notification to mentioned user
+- [ ] Mention highlighted in note
+- [ ] "Mentions" notification tab
+- [ ] Click mention to view profile
+
+---
+
+### Story 44.2: Internal Comments vs Notes
+
+**As** a team member,
+**I want** to add private comments separate from notes,
+**So that** internal discussions stay separate.
+
+**Scenario:**
+```
+Given I view a lead
+When I add an internal comment
+Then it's visible to team only
+And separate from client-facing notes
+```
+
+**Acceptance Criteria:**
+- [ ] Separate comments section
+- [ ] Comments marked as internal
+- [ ] Different visual style
+- [ ] @mentions in comments
+- [ ] Comment threads/replies
+
+---
+
+## Epic 45: Reporting Dashboard
+
+### Story 45.1: Building Custom Reports
+
+**As** a team lead,
+**I want** to create custom reports,
+**So that** I track the metrics that matter to us.
+
+**Scenario:**
+```
+Given I'm in reports section
+When I create report "Weekly Conversions"
+With filters: stage changed to Won, this week
+Then I see matching leads and totals
+And can save/schedule the report
+```
+
+**Acceptance Criteria:**
+- [ ] Report builder UI
+- [ ] Filter by any field
+- [ ] Date range selection
+- [ ] Aggregate functions (count, sum)
+- [ ] Save report for reuse
+
+---
+
+### Story 45.2: Scheduled Report Emails
+
+**As** a team lead,
+**I want** to receive reports by email weekly,
+**So that** I stay informed without logging in.
+
+**Scenario:**
+```
+Given I have a saved report
+When I set schedule "Every Monday 9am"
+Then I receive report via email
+With summary and link to full report
+```
+
+**Acceptance Criteria:**
+- [ ] Schedule configuration
+- [ ] Email delivery
+- [ ] PDF attachment option
+- [ ] Multiple recipients
+- [ ] Unsubscribe option
+
+---
+
+## Epic 46: Multi-Pipeline Support
+
+### Story 46.1: Creating Multiple Pipelines
+
+**As** an admin,
+**I want** to create separate pipelines,
+**So that** we can track different types of leads.
+
+**Scenario:**
+```
+Given we have Sales and Partnerships teams
+When I create "Partnerships Pipeline"
+With custom stages: Identified, Reached Out, In Discussion, Agreed, Active
+Then leads can be placed in either pipeline
+```
+
+**Acceptance Criteria:**
+- [ ] Create new pipeline
+- [ ] Custom stages per pipeline
+- [ ] Assign leads to pipeline
+- [ ] Pipeline switcher in UI
+- [ ] Pipeline-specific reports
+
+---
+
+### Story 46.2: Cross-Pipeline Views
+
+**As** a team lead,
+**I want** to see all pipelines at once,
+**So that** I have a complete picture.
+
+**Scenario:**
+```
+Given we have multiple pipelines
+When I select "All Pipelines" view
+Then I see aggregated stats
+And can filter across pipelines
+```
+
+**Acceptance Criteria:**
+- [ ] "All Pipelines" dashboard
+- [ ] Combined metrics
+- [ ] Filter by pipeline
+- [ ] Cross-pipeline search
+- [ ] Pipeline comparison report
+
+---
+
+## Epic 47: Mobile App Features
+
+### Story 47.1: Quick Lead Capture on Mobile
+
+**As** a team member at an event,
+**I want** to quickly add leads from my phone,
+**So that** I capture contacts immediately.
+
+**Scenario:**
+```
+Given I'm at a conference
+When I open the mobile app
+Then I can quickly add name + one social handle
+And take a photo of their business card
+```
+
+**Acceptance Criteria:**
+- [ ] Streamlined mobile add form
+- [ ] Camera integration
+- [ ] Business card OCR
+- [ ] Offline support with sync
+- [ ] Quick voice note option
+
+---
+
+### Story 47.2: Mobile Notifications
+
+**As** a team member,
+**I want** to receive push notifications,
+**So that** I'm alerted to important updates.
+
+**Scenario:**
+```
+Given a lead I own moves to "Won"
+When another team member updates it
+Then I get a push notification
+With quick actions available
+```
+
+**Acceptance Criteria:**
+- [ ] Push notification setup
+- [ ] Configurable notification types
+- [ ] Quick action buttons
+- [ ] Notification preferences
+- [ ] Do not disturb schedule
+
+---
+
+## Epic 48: Webhooks & Integrations
+
+### Story 48.1: Setting Up Webhooks
+
+**As** an admin,
+**I want** to configure webhooks for events,
+**So that** external systems can react to CRM changes.
+
+**Scenario:**
+```
+Given I configure webhook for "lead.stage_changed"
+When a lead moves to "Won"
+Then webhook fires to configured URL
+With lead data in JSON payload
+```
+
+**Acceptance Criteria:**
+- [ ] Webhook configuration UI
+- [ ] Event type selection
+- [ ] Custom payload templates
+- [ ] Webhook history/logs
+- [ ] Retry on failure
+
+---
+
+### Story 48.2: Zapier Integration
+
+**As** a team member,
+**I want** to connect CRM to Zapier,
+**So that** I can automate workflows with other tools.
+
+**Scenario:**
+```
+Given CRM is connected to Zapier
+When I create a Zap "New Lead → Slack notification"
+Then every new lead triggers Slack message
+Without custom code
+```
+
+**Acceptance Criteria:**
+- [ ] Zapier app listing
+- [ ] Trigger events available
+- [ ] Action endpoints available
+- [ ] Authentication flow
+- [ ] Usage documentation
+
+---
+
 ## Story Map Summary
 
 | Epic | Priority | User Value |
@@ -1046,6 +2083,13 @@ And I receive the lead ID in response
 | **Email Templates** | **P3** | **Faster outreach** |
 | **REST API** | **P3** | **Build integrations** |
 | **Team Roles** | **P2** | **Control access** |
+| **Company Grouping** | **P2** | **B2B organization view** |
+| **Deal Value & Revenue** | **P1** | **Track pipeline $$$** |
+| **Comments & Mentions** | **P2** | **Team collaboration** |
+| **Timeline Visualization** | **P2** | **See the full journey** |
+| **Saved Views** | **P2** | **Quick workflow switching** |
+| **Slack Integration** | **P3** | **Stay informed in Slack** |
+| **Calendar Integration** | **P3** | **Never miss a follow-up** |
 
 ---
 

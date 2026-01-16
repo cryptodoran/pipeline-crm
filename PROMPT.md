@@ -1,4 +1,42 @@
-# Ralph CRM Mission Brief
+# Pipeline CRM - Development Task
+
+## YOUR TASK RIGHT NOW
+
+Work through **remaining user stories** in `@fix_plan.md`.
+
+**COMPLETED:**
+- ✅ Tag model in schema
+- ✅ Tag server actions
+- ✅ TagInput component
+- ✅ Tags on lead cards
+
+**NEXT PRIORITIES:**
+
+1. **Build /tags management page** (`src/app/tags/page.tsx`):
+   - List all tags with lead count
+   - Create new tag form
+   - Edit tag (name, color)
+   - Delete tag with confirmation
+   - Link from main nav
+
+2. **Add tag filter to Kanban** (update `filter-dropdown.tsx`):
+   - Add tag filter section
+   - Multi-select tags
+   - Filter leads by selected tags
+
+3. **Phase 14: Reminders & Follow-ups** (P1)
+4. **Phase 10: Bulk Actions** (P2)
+
+**WORKFLOW:**
+1. Implement one feature at a time
+2. Run `npm run build` after each change
+3. Commit with descriptive message
+4. Push to GitHub
+5. Mark tasks complete in `@fix_plan.md`
+
+DO NOT summarize or analyze. WRITE THE CODE.
+
+---
 
 ## The Vision
 

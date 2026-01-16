@@ -31,6 +31,12 @@ export default function RootLayout({
                   <a href="/team" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
                     Team
                   </a>
+                  <a href="/tags" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Tags
+                  </a>
+                  <a href="/reminders" className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Reminders
+                  </a>
                 </nav>
               </div>
             </div>

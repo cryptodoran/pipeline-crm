@@ -4,6 +4,12 @@ import { useDroppable } from '@dnd-kit/core'
 import { PipelineStage } from '@/lib/types'
 import { LeadCard } from './lead-card'
 
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
 type Lead = {
   id: string
   name: string
@@ -17,6 +23,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
+  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
@@ -37,6 +44,10 @@ interface PipelineColumnProps {
   color: string
   leads: Lead[]
   teamMembers: TeamMember[]
+  availableTags?: Tag[]
+  selectionMode?: boolean
+  selectedLeadIds?: Set<string>
+  onSelectionChange?: (leadId: string, selected: boolean) => void
 }
 
 export function PipelineColumn({
@@ -45,6 +56,10 @@ export function PipelineColumn({
   color,
   leads,
   teamMembers,
+  availableTags = [],
+  selectionMode = false,
+  selectedLeadIds = new Set(),
+  onSelectionChange,
 }: PipelineColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage,
@@ -74,7 +89,15 @@ export function PipelineColumn({
           </div>
         ) : (
           leads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} teamMembers={teamMembers} />
+            <LeadCard
+              key={lead.id}
+              lead={lead}
+              teamMembers={teamMembers}
+              availableTags={availableTags}
+              selectionMode={selectionMode}
+              isSelected={selectedLeadIds.has(lead.id)}
+              onSelectionChange={onSelectionChange}
+            />
           ))
         )}
       </div>

@@ -17,6 +17,8 @@ import { PipelineColumn } from './pipeline-column'
 import { LeadCard } from './lead-card'
 import { SearchInput } from './search-input'
 import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
+import { BulkActionToolbar } from './bulk-action-toolbar'
+import { CheckSquare } from 'lucide-react'
 
 type Tag = {
   id: string
@@ -75,6 +77,8 @@ export function KanbanBoard({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState<PlatformFilter[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set())
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -131,6 +135,10 @@ export function KanbanBoard({
     return Object.values(filteredLeadsByStage).reduce((sum, leads) => sum + leads.length, 0)
   }, [filteredLeadsByStage])
 
+  const allFilteredLeadIds = useMemo(() => {
+    return Object.values(filteredLeadsByStage).flat().map(lead => lead.id)
+  }, [filteredLeadsByStage])
+
   const activeLead = activeId
     ? Object.values(localLeadsByStage).flat().find(lead => lead.id === activeId)
     : null
@@ -185,6 +193,34 @@ export function KanbanBoard({
     setSelectedTagIds([])
   }
 
+  const handleSelectionChange = (leadId: string, selected: boolean) => {
+    setSelectedLeadIds(prev => {
+      const next = new Set(prev)
+      if (selected) {
+        next.add(leadId)
+      } else {
+        next.delete(leadId)
+      }
+      return next
+    })
+  }
+
+  const handleClearSelection = () => {
+    setSelectedLeadIds(new Set())
+    setSelectionMode(false)
+  }
+
+  const handleSelectAll = () => {
+    setSelectedLeadIds(new Set(allFilteredLeadIds))
+  }
+
+  const toggleSelectionMode = () => {
+    if (selectionMode) {
+      setSelectedLeadIds(new Set())
+    }
+    setSelectionMode(!selectionMode)
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -206,6 +242,17 @@ export function KanbanBoard({
             selectedTagIds={selectedTagIds}
             onTagsChange={setSelectedTagIds}
           />
+          <button
+            onClick={toggleSelectionMode}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectionMode
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <CheckSquare className="w-4 h-4" />
+            {selectionMode ? 'Exit Select' : 'Select'}
+          </button>
           {hasActiveFilters && (
             <span className="text-sm text-gray-500">
               {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
@@ -220,6 +267,18 @@ export function KanbanBoard({
           selectedTagIds={selectedTagIds}
           onRemoveTag={(tagId) => setSelectedTagIds(selectedTagIds.filter(id => id !== tagId))}
         />
+
+        {/* Bulk Action Toolbar */}
+        {selectionMode && (
+          <BulkActionToolbar
+            selectedCount={selectedLeadIds.size}
+            selectedLeadIds={Array.from(selectedLeadIds)}
+            teamMembers={teamMembers}
+            onClearSelection={handleClearSelection}
+            onSelectAll={handleSelectAll}
+            totalLeads={totalFilteredLeads}
+          />
+        )}
       </div>
 
       {hasActiveFilters && !hasResults ? (
@@ -244,6 +303,9 @@ export function KanbanBoard({
               leads={filteredLeadsByStage[stage]}
               teamMembers={teamMembers}
               availableTags={availableTags}
+              selectionMode={selectionMode}
+              selectedLeadIds={selectedLeadIds}
+              onSelectionChange={handleSelectionChange}
             />
           ))}
         </div>
