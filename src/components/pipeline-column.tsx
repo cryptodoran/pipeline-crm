@@ -69,7 +69,7 @@ export function PipelineColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex-shrink-0 w-72 bg-gray-100 dark:bg-gray-800 rounded-lg p-3 ${
+      className={`flex-shrink-0 w-[280px] sm:w-72 bg-gray-100 dark:bg-gray-800 rounded-lg p-2 sm:p-3 snap-start ${
         isOver ? 'ring-2 ring-blue-500 ring-opacity-50' : ''
       }`}
     >

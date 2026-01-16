@@ -282,39 +282,43 @@ export function KanbanBoard({
       onDragEnd={handleDragEnd}
     >
       <div className="mb-4 space-y-3">
-        <div className="flex items-center gap-4">
-          <SearchInput
-            ref={searchInputRef}
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search leads by name... (Press / to focus)"
-          />
-          <FilterDropdown
-            selectedFilters={selectedFilters}
-            onChange={setSelectedFilters}
-            availableTags={availableTags}
-            selectedTagIds={selectedTagIds}
-            onTagsChange={setSelectedTagIds}
-            selectedSources={selectedSources}
-            onSourcesChange={setSelectedSources}
-          />
-          <button
-            onClick={toggleSelectionMode}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectionMode
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            <CheckSquare className="w-4 h-4" />
-            {selectionMode ? 'Exit Select' : 'Select'}
-          </button>
-          {hasActiveFilters && (
-            <span className="text-sm text-gray-500">
-              {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
-            </span>
-          )}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+          <div className="flex-1">
+            <SearchInput
+              ref={searchInputRef}
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search leads... (Press /)"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <FilterDropdown
+              selectedFilters={selectedFilters}
+              onChange={setSelectedFilters}
+              availableTags={availableTags}
+              selectedTagIds={selectedTagIds}
+              onTagsChange={setSelectedTagIds}
+              selectedSources={selectedSources}
+              onSourcesChange={setSelectedSources}
+            />
+            <button
+              onClick={toggleSelectionMode}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectionMode
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">{selectionMode ? 'Exit Select' : 'Select'}</span>
+            </button>
+          </div>
         </div>
+        {hasActiveFilters && (
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {totalFilteredLeads} result{totalFilteredLeads !== 1 ? 's' : ''} found
+          </span>
+        )}
         <FilterBadges
           selectedFilters={selectedFilters}
           onRemove={(filter) => setSelectedFilters(selectedFilters.filter(f => f !== filter))}
@@ -351,7 +355,7 @@ export function KanbanBoard({
           </p>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory md:snap-none">
           {stages.map(stage => (
             <PipelineColumn
               key={stage}
