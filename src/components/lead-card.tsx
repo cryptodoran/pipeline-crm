@@ -17,7 +17,6 @@ import {
   User,
   Check,
   Bell,
-  Flame,
 } from 'lucide-react'
 
 type Tag = {
@@ -46,8 +45,6 @@ type Lead = {
   instagram: string | null
   email: string | null
   source: string | null
-  score?: number
-  isHot?: boolean
   assignee: { id: string; name: string; email: string; color?: string } | null
   tags?: Tag[]
   reminders?: Reminder[]
@@ -176,26 +173,7 @@ export function LeadCard({
                 {isSelected && <Check className="w-3 h-3 text-white" />}
               </div>
             )}
-            {/* Hot lead indicator */}
-            {(lead.isHot || (lead.score && lead.score >= 70)) && (
-              <span title="Hot lead">
-                <Flame className="w-4 h-4 text-orange-500 flex-shrink-0" />
-              </span>
-            )}
             <h4 className="font-medium text-gray-900 dark:text-white truncate">{lead.name}</h4>
-            {/* Lead score badge - only show if score is actually > 0 */}
-            {Boolean(lead.score && lead.score > 0) && (
-              <span
-                className={`flex-shrink-0 px-1.5 py-0.5 rounded text-xs font-medium ${
-                  (lead.score || 0) >= 70 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                  (lead.score || 0) >= 40 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                  'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                }`}
-                title={`Lead score: ${lead.score}`}
-              >
-                {lead.score}
-              </span>
-            )}
             {lead.reminders && lead.reminders.length > 0 && (
               <div
                 className={`flex-shrink-0 ${
