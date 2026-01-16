@@ -224,7 +224,7 @@ export async function getLead(id: string) {
 export async function addNote(leadId: string, content: string, authorId: string) {
   // Validate input
   addNoteSchema.parse({ leadId, content, authorId })
-  
+
   const note = await prisma.note.create({
     data: {
       content,
@@ -235,6 +235,13 @@ export async function addNote(leadId: string, content: string, authorId: string)
   })
   revalidatePath('/')
   return note
+}
+
+export async function deleteNote(noteId: string) {
+  await prisma.note.delete({
+    where: { id: noteId },
+  })
+  revalidatePath('/')
 }
 
 // ============================================================================

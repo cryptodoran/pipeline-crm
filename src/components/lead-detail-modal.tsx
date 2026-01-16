@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { X, Trash2, ExternalLink, Clock, Edit2, Save } from 'lucide-react'
 import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
-import { updateLead, deleteLead, addNote, assignLead, updateLeadStage, archiveLead } from '@/lib/actions'
+import { updateLead, deleteLead, addNote, deleteNote, assignLead, updateLeadStage, archiveLead } from '@/lib/actions'
 import { TagInput } from './tag-input'
 import { ReminderForm } from './reminder-form'
 import { toast } from 'sonner'
@@ -119,6 +119,13 @@ export function LeadDetailModal({
       await archiveLead(lead.id)
       toast.success('Lead archived')
       onClose()
+    })
+  }
+
+  const handleDeleteNote = (noteId: string) => {
+    startTransition(async () => {
+      await deleteNote(noteId)
+      toast.success('Note deleted')
     })
   }
 
@@ -348,9 +355,19 @@ export function LeadDetailModal({
                 </p>
               ) : (
                 lead.notes.map(note => (
-                  <div key={note.id} className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.content}</p>
-                    <div className="mt-2 text-xs text-gray-500">
+                  <div key={note.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 group">
+                    <div className="flex justify-between items-start gap-2">
+                      <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap flex-1">{note.content}</p>
+                      <button
+                        onClick={() => handleDeleteNote(note.id)}
+                        disabled={isPending}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+                        title="Delete note"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                       {note.author.name} • {new Date(note.createdAt).toLocaleDateString()}
                     </div>
                   </div>
