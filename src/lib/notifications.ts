@@ -174,7 +174,7 @@ async function sendReminderNotificationForLevel(
     id: string
     dueAt: Date
     note: string | null
-    lead: { name: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean } | null }
+    lead: { name: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean; timezone: string } | null }
   },
   level: NotificationLevel,
   settings: Awaited<ReturnType<typeof getNotificationSettings>>,
@@ -193,8 +193,9 @@ async function sendReminderNotificationForLevel(
     return { success: true, message: 'Assignee has notifications disabled', results: [] }
   }
 
+  const timezone = assignee?.timezone || 'America/New_York'
   const timeUntil = formatTimeUntil(reminder.dueAt, now)
-  const message = formatReminderMessage(reminder, timeUntil)
+  const message = formatReminderMessage(reminder, timeUntil, timezone)
 
   // Send via Email
   if (settings.emailEnabled) {
@@ -255,7 +256,7 @@ async function sendDealReminderNotificationForLevel(
     dueAt: Date
     note: string | null
     type: string
-    deal: { communityName: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean } | null }
+    deal: { communityName: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean; timezone: string } | null }
   },
   level: NotificationLevel,
   settings: Awaited<ReturnType<typeof getNotificationSettings>>,
@@ -273,8 +274,9 @@ async function sendDealReminderNotificationForLevel(
     return { success: true, message: 'Assignee has notifications disabled', results: [] }
   }
 
+  const timezone = assignee?.timezone || 'America/New_York'
   const timeUntil = formatTimeUntil(reminder.dueAt, now)
-  const message = formatDealReminderMessage(reminder, timeUntil)
+  const message = formatDealReminderMessage(reminder, timeUntil, timezone)
 
   // Send via Email
   if (settings.emailEnabled) {
@@ -459,15 +461,50 @@ export async function testNotificationChannel(channel: 'email' | 'telegram' | 's
   }
 }
 
+// Helper: Format date in a specific timezone
+function formatDateInTimezone(date: Date, timezone: string): string {
+  try {
+    return date.toLocaleString('en-US', {
+      timeZone: timezone,
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch {
+    // Fallback if timezone is invalid
+    return date.toLocaleString('en-US')
+  }
+}
+
+// Helper: Get short timezone abbreviation
+function getTimezoneAbbr(timezone: string): string {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'short',
+    })
+    const parts = formatter.formatToParts(new Date())
+    const tzPart = parts.find(p => p.type === 'timeZoneName')
+    return tzPart?.value || timezone
+  } catch {
+    return timezone
+  }
+}
+
 // Helper: Format lead reminder message
 function formatReminderMessage(
   reminder: { dueAt: Date; note: string | null; lead: { name: string; assignee: { name: string } | null } },
-  timeUntil: string
+  timeUntil: string,
+  timezone: string
 ) {
-  const dueTime = reminder.dueAt.toLocaleString()
+  const dueTime = formatDateInTimezone(reminder.dueAt, timezone)
+  const tzAbbr = getTimezoneAbbr(timezone)
   let message = `🔔 Reminder: Follow up with ${reminder.lead.name}\n`
   message += `⏰ Due in: ${timeUntil}\n`
-  message += `📅 Due: ${dueTime}\n`
+  message += `📅 Due: ${dueTime} (${tzAbbr})\n`
   if (reminder.note) {
     message += `📝 Note: ${reminder.note}\n`
   }
@@ -480,9 +517,11 @@ function formatReminderMessage(
 // Helper: Format deal reminder message
 function formatDealReminderMessage(
   reminder: { dueAt: Date; note: string | null; type: string; deal: { communityName: string; assignee: { name: string } | null } },
-  timeUntil: string
+  timeUntil: string,
+  timezone: string
 ) {
-  const dueTime = reminder.dueAt.toLocaleString()
+  const dueTime = formatDateInTimezone(reminder.dueAt, timezone)
+  const tzAbbr = getTimezoneAbbr(timezone)
   const typeEmoji = {
     PAYMENT: '💰',
     VESTING: '🔓',
@@ -492,7 +531,7 @@ function formatDealReminderMessage(
 
   let message = `${typeEmoji} Deal Reminder: ${reminder.deal.communityName}\n`
   message += `⏰ Due in: ${timeUntil}\n`
-  message += `📅 Due: ${dueTime}\n`
+  message += `📅 Due: ${dueTime} (${tzAbbr})\n`
   message += `🏷️ Type: ${reminder.type}\n`
   if (reminder.note) {
     message += `📝 Note: ${reminder.note}\n`

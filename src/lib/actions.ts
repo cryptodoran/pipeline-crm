@@ -291,6 +291,7 @@ export async function updateTeamMember(id: string, data: {
   slackUserId?: string | null
   telegramChatId?: string | null
   notifyOnReminder?: boolean
+  timezone?: string
 }) {
   const member = await prisma.teamMember.update({
     where: { id },

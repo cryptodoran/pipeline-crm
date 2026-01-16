@@ -19,6 +19,25 @@ const TEAM_COLORS = [
   { value: '#64748b', label: 'Gray' },
 ]
 
+// Common timezones
+const TIMEZONES = [
+  { value: 'America/New_York', label: 'Eastern (ET)' },
+  { value: 'America/Chicago', label: 'Central (CT)' },
+  { value: 'America/Denver', label: 'Mountain (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific (PT)' },
+  { value: 'America/Anchorage', label: 'Alaska (AKT)' },
+  { value: 'Pacific/Honolulu', label: 'Hawaii (HT)' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Paris', label: 'Paris (CET)' },
+  { value: 'Europe/Berlin', label: 'Berlin (CET)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+  { value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+  { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+  { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+  { value: 'UTC', label: 'UTC' },
+]
+
 interface TeamMemberCardProps {
   member: {
     id: string
@@ -28,6 +47,7 @@ interface TeamMemberCardProps {
     slackUserId?: string | null
     telegramChatId?: string | null
     notifyOnReminder?: boolean
+    timezone?: string
     _count: {
       leads: number
     }
@@ -43,6 +63,7 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
   const [editSlackUserId, setEditSlackUserId] = useState(member.slackUserId || '')
   const [editTelegramChatId, setEditTelegramChatId] = useState(member.telegramChatId || '')
   const [editNotifyOnReminder, setEditNotifyOnReminder] = useState(member.notifyOnReminder !== false)
+  const [editTimezone, setEditTimezone] = useState(member.timezone || 'America/New_York')
   const [isPending, startTransition] = useTransition()
 
   const handleDelete = () => {
@@ -72,6 +93,7 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
           slackUserId: editSlackUserId.trim() || null,
           telegramChatId: editTelegramChatId.trim() || null,
           notifyOnReminder: editNotifyOnReminder,
+          timezone: editTimezone,
         })
         toast.success('Team member updated')
         setIsEditing(false)
@@ -88,6 +110,7 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
     setEditSlackUserId(member.slackUserId || '')
     setEditTelegramChatId(member.telegramChatId || '')
     setEditNotifyOnReminder(member.notifyOnReminder !== false)
+    setEditTimezone(member.timezone || 'America/New_York')
     setIsEditing(false)
   }
 
@@ -159,6 +182,20 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
                 className="w-full px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Telegram Chat ID (optional)"
               />
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">Timezone:</span>
+                <select
+                  value={editTimezone}
+                  onChange={(e) => setEditTimezone(e.target.value)}
+                  className="flex-1 px-3 py-1.5 border border-gray-600 bg-gray-700 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         ) : (
@@ -171,16 +208,20 @@ export function TeamMemberCard({ member }: TeamMemberCardProps) {
             <div>
               <h3 className="font-medium text-white">{member.name}</h3>
               <p className="text-sm text-gray-400">{member.email}</p>
-              {member.slackUserId && (
-                <p className="text-xs text-purple-400 mt-0.5">
-                  Slack: {member.slackUserId}
-                </p>
-              )}
-              {!member.slackUserId && (
-                <p className="text-xs text-gray-500 mt-0.5">
-                  No Slack ID set
-                </p>
-              )}
+              <div className="flex items-center gap-3 mt-0.5">
+                {member.slackUserId ? (
+                  <span className="text-xs text-purple-400">
+                    Slack: {member.slackUserId}
+                  </span>
+                ) : (
+                  <span className="text-xs text-gray-500">
+                    No Slack ID
+                  </span>
+                )}
+                <span className="text-xs text-blue-400">
+                  {TIMEZONES.find(tz => tz.value === member.timezone)?.label || member.timezone || 'ET'}
+                </span>
+              </div>
             </div>
           </div>
         )}

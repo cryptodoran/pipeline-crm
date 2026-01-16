@@ -270,13 +270,25 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
   }
 
   const formatCurrency = (value: Decimal | null) => {
-    if (!value) return '-'
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value))
+    if (value === null || value === undefined) return '-'
+    const num = Number(value)
+    if (num === 0) return '-'
+    // For very small values (like basis points), show more decimals
+    if (Math.abs(num) < 0.01) {
+      return `$${num.toFixed(8).replace(/\.?0+$/, '')}`
+    }
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num)
   }
 
   const formatPercent = (value: Decimal | null) => {
-    if (!value) return '-'
-    return `${Number(value)}%`
+    if (value === null || value === undefined) return '-'
+    const num = Number(value)
+    if (num === 0) return '-'
+    // For very small values (like basis points), show more decimals
+    if (Math.abs(num) < 0.01) {
+      return `${num.toFixed(8).replace(/\.?0+$/, '')}%`
+    }
+    return `${num}%`
   }
 
   const getStatusColor = (status: string) => {
