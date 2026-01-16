@@ -88,10 +88,18 @@ function getNotifiedField(level: NotificationLevel): string {
   return `notified${level}`
 }
 
-// Format time until due
+// Format time until due (or overdue)
 function formatTimeUntil(dueAt: Date, now: Date): string {
   const diffMs = dueAt.getTime() - now.getTime()
   const diffMins = Math.round(diffMs / (60 * 1000))
+
+  // Handle overdue
+  if (diffMins < 0) {
+    const overdueMins = Math.abs(diffMins)
+    if (overdueMins < 60) return `${overdueMins} minutes OVERDUE`
+    if (overdueMins < 1440) return `${Math.round(overdueMins / 60)} hour${Math.round(overdueMins / 60) > 1 ? 's' : ''} OVERDUE`
+    return `${Math.round(overdueMins / 1440)} day${Math.round(overdueMins / 1440) > 1 ? 's' : ''} OVERDUE`
+  }
 
   if (diffMins < 60) return `${diffMins} minutes`
   if (diffMins < 1440) return `${Math.round(diffMins / 60)} hour${Math.round(diffMins / 60) > 1 ? 's' : ''}`
@@ -109,11 +117,14 @@ export async function processPendingNotifications() {
     return { message: 'No notification times enabled', results: [] }
   }
 
+  // Include reminders up to 24 hours overdue (so we don't miss any)
+  const overdueWindow = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
   // Process lead reminders
   const leadReminders = await prisma.reminder.findMany({
     where: {
       completed: false,
-      dueAt: { gt: now }, // Only future reminders
+      dueAt: { gte: overdueWindow }, // Include recently overdue reminders
     },
     include: {
       lead: { include: { assignee: true } },
@@ -121,18 +132,36 @@ export async function processPendingNotifications() {
   })
 
   for (const reminder of leadReminders) {
-    for (const level of enabledLevels) {
-      const notifiedField = getNotifiedField(level) as keyof typeof reminder
-      const alreadyNotified = reminder[notifiedField] as boolean
+    const isOverdue = reminder.dueAt <= now
 
-      if (!alreadyNotified && isWithinWindow(reminder.dueAt, level, now)) {
-        const result = await sendReminderNotificationForLevel(reminder, level, settings, now)
+    if (isOverdue) {
+      // For overdue reminders, send if ANY level hasn't been notified yet
+      const anyNotSent = !reminder.notified1Day && !reminder.notified1Hour &&
+                         !reminder.notified30Min && !reminder.notified15Min
+      if (anyNotSent) {
+        const result = await sendReminderNotificationForLevel(reminder, '15Min', settings, now)
         results.push({
           type: 'lead',
           reminderId: reminder.id,
-          level,
+          level: 'overdue',
           ...result
         })
+      }
+    } else {
+      // Future reminders - check each enabled level
+      for (const level of enabledLevels) {
+        const notifiedField = getNotifiedField(level) as keyof typeof reminder
+        const alreadyNotified = reminder[notifiedField] as boolean
+
+        if (!alreadyNotified && isWithinWindow(reminder.dueAt, level, now)) {
+          const result = await sendReminderNotificationForLevel(reminder, level, settings, now)
+          results.push({
+            type: 'lead',
+            reminderId: reminder.id,
+            level,
+            ...result
+          })
+        }
       }
     }
   }
@@ -141,7 +170,7 @@ export async function processPendingNotifications() {
   const dealReminders = await prisma.dealReminder.findMany({
     where: {
       completed: false,
-      dueAt: { gt: now }, // Only future reminders
+      dueAt: { gte: overdueWindow }, // Include recently overdue reminders
     },
     include: {
       deal: { include: { assignee: true } },
@@ -149,18 +178,36 @@ export async function processPendingNotifications() {
   })
 
   for (const reminder of dealReminders) {
-    for (const level of enabledLevels) {
-      const notifiedField = getNotifiedField(level) as keyof typeof reminder
-      const alreadyNotified = reminder[notifiedField] as boolean
+    const isOverdue = reminder.dueAt <= now
 
-      if (!alreadyNotified && isWithinWindow(reminder.dueAt, level, now)) {
-        const result = await sendDealReminderNotificationForLevel(reminder, level, settings, now)
+    if (isOverdue) {
+      // For overdue reminders, send if ANY level hasn't been notified yet
+      const anyNotSent = !reminder.notified1Day && !reminder.notified1Hour &&
+                         !reminder.notified30Min && !reminder.notified15Min
+      if (anyNotSent) {
+        const result = await sendDealReminderNotificationForLevel(reminder, '15Min', settings, now)
         results.push({
           type: 'deal',
           reminderId: reminder.id,
-          level,
+          level: 'overdue',
           ...result
         })
+      }
+    } else {
+      // Future reminders - check each enabled level
+      for (const level of enabledLevels) {
+        const notifiedField = getNotifiedField(level) as keyof typeof reminder
+        const alreadyNotified = reminder[notifiedField] as boolean
+
+        if (!alreadyNotified && isWithinWindow(reminder.dueAt, level, now)) {
+          const result = await sendDealReminderNotificationForLevel(reminder, level, settings, now)
+          results.push({
+            type: 'deal',
+            reminderId: reminder.id,
+            level,
+            ...result
+          })
+        }
       }
     }
   }

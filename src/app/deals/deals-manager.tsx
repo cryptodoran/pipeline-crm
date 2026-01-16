@@ -245,24 +245,40 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
     })
   }
 
-  const handleCompleteReminder = (reminderId: string) => {
+  const handleCompleteReminder = (dealId: string, reminderId: string) => {
     startTransition(async () => {
       try {
         await completeDealReminder(reminderId)
+        // Update local state instead of reloading
+        setDeals(deals.map(d => {
+          if (d.id !== dealId) return d
+          return {
+            ...d,
+            reminders: d.reminders.map(r =>
+              r.id === reminderId ? { ...r, completed: true } : r
+            ),
+          }
+        }))
         toast.success('Marked as complete')
-        window.location.reload()
       } catch {
         toast.error('Failed to complete reminder')
       }
     })
   }
 
-  const handleDeleteReminder = (reminderId: string) => {
+  const handleDeleteReminder = (dealId: string, reminderId: string) => {
     startTransition(async () => {
       try {
         await deleteDealReminder(reminderId)
+        // Update local state instead of reloading
+        setDeals(deals.map(d => {
+          if (d.id !== dealId) return d
+          return {
+            ...d,
+            reminders: d.reminders.filter(r => r.id !== reminderId),
+          }
+        }))
         toast.success('Reminder deleted')
-        window.location.reload()
       } catch {
         toast.error('Failed to delete reminder')
       }
@@ -278,6 +294,25 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
       return `$${num.toFixed(8).replace(/\.?0+$/, '')}`
     }
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num)
+  }
+
+  // Format fee as basis points (for very small fee percentages)
+  // 0.0005 = 5 bps (basis points)
+  const formatFeeAsBps = (value: Decimal | null) => {
+    if (value === null || value === undefined) return '-'
+    const num = Number(value)
+    if (num === 0) return '-'
+    // If it's a small value (likely basis points as decimal), convert to bps
+    if (Math.abs(num) < 0.1) {
+      const bps = num * 10000
+      // Show as integer bps if it's a whole number, otherwise show 1 decimal
+      if (Number.isInteger(bps)) {
+        return `${bps} bps`
+      }
+      return `${bps.toFixed(1)} bps`
+    }
+    // If larger, show as percentage
+    return `${num}%`
   }
 
   const formatPercent = (value: Decimal | null) => {
@@ -406,7 +441,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     {deal.fee && (
                       <span className="flex items-center gap-1">
                         <DollarSign className="w-4 h-4" />
-                        {formatCurrency(deal.fee)} fee
+                        {formatFeeAsBps(deal.fee)} fee
                       </span>
                     )}
                     {deal.referralRevShare && (
@@ -453,7 +488,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                       <div className="space-y-2">
                         <h4 className="font-medium text-gray-900 dark:text-white text-sm">Financial Terms</h4>
                         <div className="text-sm text-gray-600 dark:text-gray-300">
-                          <p>Fee: {formatCurrency(deal.fee)}</p>
+                          <p>Fee: {formatFeeAsBps(deal.fee)}</p>
                           <p>Referral Code: {deal.referralCode || '-'}</p>
                           <p>Rev Share: {formatPercent(deal.referralRevShare)}</p>
                         </div>
@@ -543,7 +578,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                               <div className="flex items-center gap-1">
                                 {!reminder.completed && (
                                   <button
-                                    onClick={() => handleCompleteReminder(reminder.id)}
+                                    onClick={() => handleCompleteReminder(deal.id, reminder.id)}
                                     className="p-1 text-green-600 hover:bg-green-100 rounded"
                                     title="Mark Complete"
                                   >
@@ -551,7 +586,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                                   </button>
                                 )}
                                 <button
-                                  onClick={() => handleDeleteReminder(reminder.id)}
+                                  onClick={() => handleDeleteReminder(deal.id, reminder.id)}
                                   className="p-1 text-red-600 hover:bg-red-100 rounded"
                                   title="Delete"
                                 >
