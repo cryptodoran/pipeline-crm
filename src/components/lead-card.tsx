@@ -4,7 +4,6 @@ import { useDraggable } from '@dnd-kit/core'
 import { useState } from 'react'
 import { SOCIAL_URLS, SocialPlatform, SOURCE_COLORS } from '@/lib/types'
 import { LeadDetailModal } from './lead-detail-modal'
-import { TagPills } from './tag-input'
 import {
   MessageCircle,
   Twitter,
@@ -18,12 +17,6 @@ import {
   Check,
   Bell,
 } from 'lucide-react'
-
-type Tag = {
-  id: string
-  name: string
-  color: string
-}
 
 type Reminder = {
   id: string
@@ -46,7 +39,6 @@ type Lead = {
   email: string | null
   source: string | null
   assignee: { id: string; name: string; email: string; color?: string } | null
-  tags?: Tag[]
   reminders?: Reminder[]
   notes: Array<{
     id: string
@@ -65,7 +57,6 @@ type TeamMember = {
 interface LeadCardProps {
   lead: Lead
   teamMembers: TeamMember[]
-  availableTags?: Tag[]
   stages?: string[]
   stageLabels?: Record<string, string>
   isDragging?: boolean
@@ -89,7 +80,6 @@ const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ className?: str
 export function LeadCard({
   lead,
   teamMembers,
-  availableTags = [],
   stages = [],
   stageLabels = {},
   isDragging,
@@ -214,13 +204,6 @@ export function LeadCard({
           })}
         </div>
 
-        {/* Tags */}
-        {lead.tags && lead.tags.length > 0 && (
-          <div className="mb-2">
-            <TagPills tags={lead.tags} />
-          </div>
-        )}
-
         {/* Source badge */}
         {lead.source && (
           <div className="mb-2">
@@ -257,7 +240,6 @@ export function LeadCard({
       <LeadDetailModal
         lead={lead}
         teamMembers={teamMembers}
-        availableTags={availableTags}
         stages={stages}
         stageLabels={stageLabels}
         isOpen={isModalOpen}

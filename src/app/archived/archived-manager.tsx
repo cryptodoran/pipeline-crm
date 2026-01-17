@@ -5,12 +5,6 @@ import { RotateCcw, Trash2, Calendar, User, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { unarchiveLead, deleteLead } from '@/lib/actions'
 
-type Tag = {
-  id: string
-  name: string
-  color: string
-}
-
 type Lead = {
   id: string
   name: string
@@ -21,7 +15,6 @@ type Lead = {
   source: string | null
   archivedAt: Date | null
   assignee: { id: string; name: string } | null
-  tags: Tag[]
 }
 
 interface ArchivedLeadsManagerProps {
@@ -128,19 +121,6 @@ export function ArchivedLeadsManager({ initialLeads }: ArchivedLeadsManagerProps
                   </span>
                 )}
               </div>
-              {lead.tags.length > 0 && (
-                <div className="flex gap-1 mt-2">
-                  {lead.tags.map(tag => (
-                    <span
-                      key={tag.id}
-                      className="px-2 py-0.5 rounded-full text-xs"
-                      style={{ backgroundColor: `${tag.color}20`, color: tag.color }}
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-2 ml-4">
               <button

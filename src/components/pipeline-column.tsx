@@ -3,12 +3,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { LeadCard } from './lead-card'
 
-type Tag = {
-  id: string
-  name: string
-  color: string
-}
-
 type Lead = {
   id: string
   name: string
@@ -23,7 +17,6 @@ type Lead = {
   email: string | null
   source: string | null
   assignee: { id: string; name: string; email: string } | null
-  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
@@ -44,7 +37,6 @@ interface PipelineColumnProps {
   color: string
   leads: Lead[]
   teamMembers: TeamMember[]
-  availableTags?: Tag[]
   stages?: string[]
   stageLabels?: Record<string, string>
   selectionMode?: boolean
@@ -59,7 +51,6 @@ export function PipelineColumn({
   color,
   leads,
   teamMembers,
-  availableTags = [],
   stages = [],
   stageLabels = {},
   selectionMode = false,
@@ -99,7 +90,6 @@ export function PipelineColumn({
               key={lead.id}
               lead={lead}
               teamMembers={teamMembers}
-              availableTags={availableTags}
               stages={stages}
               stageLabels={stageLabels}
               selectionMode={selectionMode}

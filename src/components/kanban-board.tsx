@@ -20,13 +20,6 @@ import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
 import { BulkActionToolbar } from './bulk-action-toolbar'
 import { CheckSquare, Keyboard, RefreshCw } from 'lucide-react'
 
-type Tag = {
-  id: string
-  name: string
-  color: string
-  _count?: { leads: number }
-}
-
 type Lead = {
   id: string
   name: string
@@ -41,7 +34,6 @@ type Lead = {
   email: string | null
   source: string | null
   assignee: { id: string; name: string; email: string; color?: string } | null
-  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
@@ -59,7 +51,6 @@ type TeamMember = {
 interface KanbanBoardProps {
   leadsByStage: Record<string, Lead[]>
   teamMembers: TeamMember[]
-  availableTags?: Tag[]
   stages: string[]
   stageLabels: Record<string, string>
   stageColors: Record<string, string>
@@ -71,7 +62,6 @@ const POLL_INTERVAL = 10000 // 10 seconds
 export function KanbanBoard({
   leadsByStage,
   teamMembers,
-  availableTags = [],
   stages,
   stageLabels,
   stageColors,
@@ -82,7 +72,6 @@ export function KanbanBoard({
   const [localLeadsByStage, setLocalLeadsByStage] = useState(leadsByStage)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState<PlatformFilter[]>([])
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [selectedSources, setSelectedSources] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set())
@@ -185,16 +174,6 @@ export function KanbanBoard({
           }
         }
 
-        // Tag filters (AND logic - lead must have all selected tags)
-        if (selectedTagIds.length > 0) {
-          const leadTagIds = lead.tags?.map(t => t.id) || []
-          for (const tagId of selectedTagIds) {
-            if (!leadTagIds.includes(tagId)) {
-              return false
-            }
-          }
-        }
-
         // Source filters (OR logic - lead must have one of selected sources)
         if (selectedSources.length > 0) {
           if (!lead.source || !selectedSources.includes(lead.source)) {
@@ -207,7 +186,7 @@ export function KanbanBoard({
     }
 
     return filtered
-  }, [localLeadsByStage, searchQuery, selectedFilters, selectedTagIds, selectedSources, stages])
+  }, [localLeadsByStage, searchQuery, selectedFilters, selectedSources, stages])
 
   // Check if search has any results
   const hasResults = useMemo(() => {
@@ -226,7 +205,7 @@ export function KanbanBoard({
     ? Object.values(localLeadsByStage).flat().find(lead => lead.id === activeId)
     : null
 
-  const hasActiveFilters = searchQuery || selectedFilters.length > 0 || selectedTagIds.length > 0 || selectedSources.length > 0
+  const hasActiveFilters = searchQuery || selectedFilters.length > 0 || selectedSources.length > 0
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string)
@@ -273,7 +252,6 @@ export function KanbanBoard({
 
   const handleClearAllFilters = () => {
     setSelectedFilters([])
-    setSelectedTagIds([])
     setSelectedSources([])
   }
 
@@ -326,9 +304,6 @@ export function KanbanBoard({
             <FilterDropdown
               selectedFilters={selectedFilters}
               onChange={setSelectedFilters}
-              availableTags={availableTags}
-              selectedTagIds={selectedTagIds}
-              onTagsChange={setSelectedTagIds}
               selectedSources={selectedSources}
               onSourcesChange={setSelectedSources}
             />
@@ -373,9 +348,6 @@ export function KanbanBoard({
           selectedFilters={selectedFilters}
           onRemove={(filter) => setSelectedFilters(selectedFilters.filter(f => f !== filter))}
           onClearAll={handleClearAllFilters}
-          availableTags={availableTags}
-          selectedTagIds={selectedTagIds}
-          onRemoveTag={(tagId) => setSelectedTagIds(selectedTagIds.filter(id => id !== tagId))}
           selectedSources={selectedSources}
           onRemoveSource={(source) => setSelectedSources(selectedSources.filter(s => s !== source))}
         />
@@ -399,7 +371,7 @@ export function KanbanBoard({
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <p className="text-lg font-medium">No results found</p>
           <p className="text-sm">
-            {searchQuery && (selectedFilters.length > 0 || selectedTagIds.length > 0)
+            {searchQuery && selectedFilters.length > 0
               ? `No leads match "${searchQuery}" with the selected filters`
               : searchQuery
               ? `No leads match "${searchQuery}"`
@@ -416,7 +388,6 @@ export function KanbanBoard({
               color={stageColors[stage]}
               leads={filteredLeadsByStage[stage] || []}
               teamMembers={teamMembers}
-              availableTags={availableTags}
               stages={stages}
               stageLabels={stageLabels}
               selectionMode={selectionMode}
@@ -430,7 +401,7 @@ export function KanbanBoard({
 
       <DragOverlay>
         {activeLead ? (
-          <LeadCard lead={activeLead} teamMembers={teamMembers} availableTags={availableTags} stages={stages} stageLabels={stageLabels} isDragging />
+          <LeadCard lead={activeLead} teamMembers={teamMembers} stages={stages} stageLabels={stageLabels} isDragging />
         ) : null}
       </DragOverlay>
 

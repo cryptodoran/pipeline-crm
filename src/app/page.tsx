@@ -1,4 +1,4 @@
-import { getLeads, getTeamMembers, getTags } from '@/lib/actions'
+import { getLeads, getTeamMembers } from '@/lib/actions'
 import { getStagesConfig, getStages } from '@/lib/stage-actions'
 import { requireIdentity } from '@/lib/current-user'
 import { KanbanBoard } from '@/components/kanban-board'
@@ -13,10 +13,9 @@ export default async function Home() {
   // Server-side auth check - redirects to login if not authenticated
   const currentUserId = await requireIdentity()
 
-  const [leads, teamMembers, tags, stagesConfig, stagesData] = await Promise.all([
+  const [leads, teamMembers, stagesConfig, stagesData] = await Promise.all([
     getLeads(),
     getTeamMembers(),
-    getTags(),
     getStagesConfig(),
     getStages(),
   ])
@@ -47,7 +46,6 @@ export default async function Home() {
       <KanbanBoard
         leadsByStage={leadsByStage}
         teamMembers={teamMembers}
-        availableTags={tags}
         stages={stages}
         stageLabels={stageLabels}
         stageColors={stageColors}

@@ -4,15 +4,8 @@ import { useState, useTransition } from 'react'
 import { X, Trash2, ExternalLink, Clock, Edit2, Save } from 'lucide-react'
 import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
 import { updateLead, deleteLead, addNote, deleteNote, assignLead, updateLeadStage, archiveLead } from '@/lib/actions'
-import { TagInput } from './tag-input'
 import { ReminderForm } from './reminder-form'
 import { toast } from 'sonner'
-
-type Tag = {
-  id: string
-  name: string
-  color: string
-}
 
 type Lead = {
   id: string
@@ -27,7 +20,6 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
-  tags?: Tag[]
   notes: Array<{
     id: string
     content: string
@@ -45,7 +37,6 @@ type TeamMember = {
 interface LeadDetailModalProps {
   lead: Lead
   teamMembers: TeamMember[]
-  availableTags?: Tag[]
   stages?: string[]
   stageLabels?: Record<string, string>
   isOpen: boolean
@@ -56,7 +47,6 @@ interface LeadDetailModalProps {
 export function LeadDetailModal({
   lead,
   teamMembers,
-  availableTags = [],
   stages = [],
   stageLabels = {},
   isOpen,
@@ -266,13 +256,6 @@ export function LeadDetailModal({
               ))}
             </select>
           </div>
-
-          {/* Tags */}
-          <TagInput
-            leadId={lead.id}
-            selectedTags={lead.tags || []}
-            availableTags={availableTags}
-          />
 
           {/* Social handles */}
           <div>
