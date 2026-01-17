@@ -104,6 +104,13 @@ export async function getDeals() {
         where: { completed: false },
         orderBy: { dueAt: 'asc' },
       },
+      distributions: {
+        orderBy: { paidAt: 'desc' },
+        take: 5, // Include last 5 distributions for quick view
+      },
+      _count: {
+        select: { distributions: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -113,8 +120,12 @@ export async function getDeal(id: string) {
   return prisma.deal.findUnique({
     where: { id },
     include: {
+      assignee: true,
       reminders: {
         orderBy: { dueAt: 'asc' },
+      },
+      distributions: {
+        orderBy: { paidAt: 'desc' },
       },
     },
   })
@@ -129,6 +140,8 @@ export async function createDealReminder(data: {
   dueAt: Date
   note?: string
   type?: string
+  recurring?: boolean
+  frequency?: string
 }) {
   const reminder = await prisma.dealReminder.create({
     data: {
@@ -136,13 +149,47 @@ export async function createDealReminder(data: {
       dueAt: data.dueAt,
       note: data.note || null,
       type: data.type || 'PAYMENT',
+      recurring: data.recurring || false,
+      frequency: data.frequency || null,
     },
   })
   revalidatePath('/deals')
   return reminder
 }
 
+// Helper to calculate next due date based on frequency
+function getNextDueDate(currentDueAt: Date, frequency: string): Date {
+  const next = new Date(currentDueAt)
+  switch (frequency) {
+    case 'weekly':
+      next.setDate(next.getDate() + 7)
+      break
+    case 'monthly':
+      next.setMonth(next.getMonth() + 1)
+      break
+    case 'quarterly':
+      next.setMonth(next.getMonth() + 3)
+      break
+    case 'annually':
+      next.setFullYear(next.getFullYear() + 1)
+      break
+    default:
+      next.setMonth(next.getMonth() + 1) // Default to monthly
+  }
+  return next
+}
+
 export async function completeDealReminder(id: string) {
+  // First, get the current reminder to check if it's recurring
+  const currentReminder = await prisma.dealReminder.findUnique({
+    where: { id },
+  })
+
+  if (!currentReminder) {
+    throw new Error('Reminder not found')
+  }
+
+  // Mark current reminder as complete
   const reminder = await prisma.dealReminder.update({
     where: { id },
     data: {
@@ -150,6 +197,22 @@ export async function completeDealReminder(id: string) {
       completedAt: new Date(),
     },
   })
+
+  // If recurring, create the next reminder
+  if (currentReminder.recurring && currentReminder.frequency) {
+    const nextDueAt = getNextDueDate(currentReminder.dueAt, currentReminder.frequency)
+    await prisma.dealReminder.create({
+      data: {
+        dealId: currentReminder.dealId,
+        dueAt: nextDueAt,
+        note: currentReminder.note,
+        type: currentReminder.type,
+        recurring: true,
+        frequency: currentReminder.frequency,
+      },
+    })
+  }
+
   revalidatePath('/deals')
   return reminder
 }

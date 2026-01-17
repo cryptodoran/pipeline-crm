@@ -170,7 +170,10 @@ model Deal {
   
   // Reminders
   reminders         DealReminder[]
-  
+
+  // Distributions (payments made)
+  distributions     Distribution[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -189,8 +192,29 @@ model DealReminder {
   notified1Hour Boolean @default(false) // Notified 1 hour before?
   notified30Min Boolean @default(false) // Notified 30 min before?
   notified15Min Boolean @default(false) // Notified 15 min before?
+
+  // Recurring reminder support
+  recurring   Boolean   @default(false)
+  frequency   String?   // weekly, monthly, quarterly, annually
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+// Distribution tracking - payments made to trading communities
+model Distribution {
+  id        String    @id @default(cuid())
+  dealId    String
+  deal      Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  amount    Decimal?  @db.Decimal(18, 8) // Supports basis points
+  type      String    // ADVISOR_TOKENS, REVENUE_SHARE, TOKEN_ALLOCATION, FEE, OTHER
+  txLink    String?   // Blockchain transaction link
+  paidAt    DateTime  // When the payment was made
+  notes     String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 // Activity log for tracking all lead interactions

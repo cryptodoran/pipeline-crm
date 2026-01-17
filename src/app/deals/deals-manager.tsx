@@ -4,15 +4,29 @@ import { useState, useTransition } from 'react'
 import {
   Plus, X, Edit2, Trash2, Bell, Check, Calendar,
   DollarSign, Percent, Clock, FileText, AlertCircle,
-  MessageCircle, ExternalLink, User
+  MessageCircle, ExternalLink, User, Link2, RefreshCw,
+  ChevronDown, ChevronUp
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { 
-  createDeal, updateDeal, deleteDeal, 
+import {
+  createDeal, updateDeal, deleteDeal,
   createDealReminder, completeDealReminder, deleteDealReminder,
-  type CreateDealInput 
+  type CreateDealInput
 } from '@/lib/deal-actions'
+import {
+  createDistribution, deleteDistribution,
+  DISTRIBUTION_TYPES
+} from '@/lib/distribution-actions'
 import { Decimal } from '@prisma/client/runtime/library'
+
+type Distribution = {
+  id: string
+  amount: Decimal | null
+  type: string
+  txLink: string | null
+  paidAt: Date
+  notes: string | null
+}
 
 type DealReminder = {
   id: string
@@ -20,6 +34,8 @@ type DealReminder = {
   note: string | null
   type: string
   completed: boolean
+  recurring: boolean
+  frequency: string | null
 }
 
 type TeamMember = {
@@ -51,6 +67,8 @@ type Deal = {
   nextPaymentDue: Date | null
   paymentFrequency: string | null
   reminders: DealReminder[]
+  distributions: Distribution[]
+  _count?: { distributions: number }
   createdAt: Date
 }
 
@@ -63,6 +81,15 @@ const CONTACT_PLATFORMS = ['telegram', 'discord', 'twitter', 'email', 'other']
 const PAYMENT_FREQUENCIES = ['weekly', 'monthly', 'quarterly', 'annually', 'one-time']
 const DEAL_STATUSES = ['ACTIVE', 'PAUSED', 'TERMINATED']
 const REMINDER_TYPES = ['PAYMENT', 'VESTING', 'REVIEW', 'OTHER']
+const RECURRING_FREQUENCIES = ['weekly', 'monthly', 'quarterly', 'annually']
+
+const DISTRIBUTION_TYPE_LABELS: Record<string, string> = {
+  ADVISOR_TOKENS: 'Advisor Tokens',
+  REVENUE_SHARE: 'Revenue Share',
+  TOKEN_ALLOCATION: 'Token Allocation',
+  FEE: 'Fee',
+  OTHER: 'Other',
+}
 
 // Form state type with string values for numeric fields (for proper input handling)
 type FormDataStrings = {
@@ -148,7 +175,19 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
     dueAt: '',
     note: '',
     type: 'PAYMENT',
+    recurring: false,
+    frequency: 'monthly',
   })
+
+  const [distributionDeal, setDistributionDeal] = useState<Deal | null>(null)
+  const [distributionForm, setDistributionForm] = useState({
+    amount: '',
+    type: 'REVENUE_SHARE',
+    txLink: '',
+    paidAt: new Date().toISOString().split('T')[0],
+    notes: '',
+  })
+  const [expandedDistributions, setExpandedDistributions] = useState<string | null>(null)
 
   const resetForm = () => {
     setFormData(emptyFormData)
@@ -234,13 +273,66 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
           dueAt: new Date(reminderForm.dueAt),
           note: reminderForm.note || undefined,
           type: reminderForm.type,
+          recurring: reminderForm.recurring,
+          frequency: reminderForm.recurring ? reminderForm.frequency : undefined,
         })
-        toast.success('Reminder set')
+        toast.success(reminderForm.recurring ? 'Recurring reminder set' : 'Reminder set')
         setReminderDeal(null)
-        setReminderForm({ dueAt: '', note: '', type: 'PAYMENT' })
+        setReminderForm({ dueAt: '', note: '', type: 'PAYMENT', recurring: false, frequency: 'monthly' })
         window.location.reload()
       } catch {
         toast.error('Failed to set reminder')
+      }
+    })
+  }
+
+  const handleAddDistribution = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!distributionDeal || !distributionForm.paidAt) return
+
+    startTransition(async () => {
+      try {
+        await createDistribution({
+          dealId: distributionDeal.id,
+          amount: distributionForm.amount ? parseFloat(distributionForm.amount) : undefined,
+          type: distributionForm.type,
+          txLink: distributionForm.txLink || undefined,
+          paidAt: new Date(distributionForm.paidAt),
+          notes: distributionForm.notes || undefined,
+        })
+        toast.success('Distribution recorded')
+        setDistributionDeal(null)
+        setDistributionForm({
+          amount: '',
+          type: 'REVENUE_SHARE',
+          txLink: '',
+          paidAt: new Date().toISOString().split('T')[0],
+          notes: '',
+        })
+        window.location.reload()
+      } catch {
+        toast.error('Failed to record distribution')
+      }
+    })
+  }
+
+  const handleDeleteDistribution = (dealId: string, distributionId: string) => {
+    if (!confirm('Delete this distribution record?')) return
+
+    startTransition(async () => {
+      try {
+        await deleteDistribution(distributionId)
+        setDeals(deals.map(d => {
+          if (d.id !== dealId) return d
+          return {
+            ...d,
+            distributions: d.distributions.filter(dist => dist.id !== distributionId),
+            _count: d._count ? { distributions: d._count.distributions - 1 } : undefined,
+          }
+        }))
+        toast.success('Distribution deleted')
+      } catch {
+        toast.error('Failed to delete distribution')
       }
     })
   }
@@ -395,11 +487,23 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {deal._count && deal._count.distributions > 0 && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {deal._count.distributions} distribution{deal._count.distributions !== 1 ? 's' : ''}
+                        </span>
+                      )}
                       {nextReminder && (
                         <span className="text-sm text-gray-500 dark:text-gray-400">
                           Next: {new Date(nextReminder.dueAt).toLocaleDateString()}
                         </span>
                       )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDistributionDeal(deal) }}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"
+                        title="Record Distribution"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); setReminderDeal(deal) }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
@@ -568,6 +672,12 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${getReminderTypeColor(reminder.type)}`}>
                                   {reminder.type}
                                 </span>
+                                {reminder.recurring && (
+                                  <span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700" title={`Repeats ${reminder.frequency}`}>
+                                    <RefreshCw className="w-3 h-3" />
+                                    {reminder.frequency}
+                                  </span>
+                                )}
                                 <span className={`text-sm ${reminder.completed ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>
                                   {reminder.note || 'No note'}
                                 </span>
@@ -580,7 +690,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                                   <button
                                     onClick={() => handleCompleteReminder(deal.id, reminder.id)}
                                     className="p-1 text-green-600 hover:bg-green-100 rounded"
-                                    title="Mark Complete"
+                                    title={reminder.recurring ? 'Complete & Create Next' : 'Mark Complete'}
                                   >
                                     <Check className="w-4 h-4" />
                                   </button>
@@ -596,6 +706,81 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Distributions */}
+                    {deal.distributions && deal.distributions.length > 0 && (
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                        <div
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => setExpandedDistributions(expandedDistributions === deal.id ? null : deal.id)}
+                        >
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">
+                            Distributions ({deal._count?.distributions || deal.distributions.length})
+                          </h4>
+                          {expandedDistributions === deal.id ? (
+                            <ChevronUp className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                          )}
+                        </div>
+                        {expandedDistributions === deal.id && (
+                          <div className="space-y-2 mt-2">
+                            {deal.distributions.map(dist => (
+                              <div
+                                key={dist.id}
+                                className="flex items-center justify-between p-2 rounded-lg bg-green-50 dark:bg-green-900/20"
+                              >
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                                    {DISTRIBUTION_TYPE_LABELS[dist.type] || dist.type}
+                                  </span>
+                                  {dist.amount && (
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                      ${Number(dist.amount).toLocaleString()}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(dist.paidAt).toLocaleDateString()}
+                                  </span>
+                                  {dist.txLink && (
+                                    <a
+                                      href={dist.txLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-400"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Link2 className="w-3 h-3" />
+                                      TX
+                                    </a>
+                                  )}
+                                  {dist.notes && (
+                                    <span className="text-xs text-gray-500 italic">
+                                      {dist.notes}
+                                    </span>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteDistribution(deal.id, dist.id)}
+                                  className="p-1 text-red-600 hover:bg-red-100 rounded"
+                                  title="Delete"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                            {deal._count && deal._count.distributions > deal.distributions.length && (
+                              <a
+                                href="/distributions"
+                                className="text-xs text-blue-500 hover:text-blue-400"
+                              >
+                                View all {deal._count.distributions} distributions →
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -886,7 +1071,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                 Set Reminder for {reminderDeal.communityName}
               </h2>
               <button
-                onClick={() => { setReminderDeal(null); setReminderForm({ dueAt: '', note: '', type: 'PAYMENT' }) }}
+                onClick={() => { setReminderDeal(null); setReminderForm({ dueAt: '', note: '', type: 'PAYMENT', recurring: false, frequency: 'monthly' }) }}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <X className="w-6 h-6" />
@@ -935,10 +1120,46 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                 />
               </div>
 
+              {/* Recurring Options */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={reminderForm.recurring}
+                    onChange={(e) => setReminderForm({ ...reminderForm, recurring: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Recurring reminder
+                  </span>
+                  <RefreshCw className="w-4 h-4 text-gray-400" />
+                </label>
+
+                {reminderForm.recurring && (
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Frequency
+                    </label>
+                    <select
+                      value={reminderForm.frequency}
+                      onChange={(e) => setReminderForm({ ...reminderForm, frequency: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {RECURRING_FREQUENCIES.map(freq => (
+                        <option key={freq} value={freq}>{freq.charAt(0).toUpperCase() + freq.slice(1)}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      When completed, a new reminder will be created for the next {reminderForm.frequency} period.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => { setReminderDeal(null); setReminderForm({ dueAt: '', note: '', type: 'PAYMENT' }) }}
+                  onClick={() => { setReminderDeal(null); setReminderForm({ dueAt: '', note: '', type: 'PAYMENT', recurring: false, frequency: 'monthly' }) }}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                 >
                   Cancel
@@ -948,7 +1169,132 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                   disabled={isPending}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {isPending ? 'Setting...' : 'Set Reminder'}
+                  {isPending ? 'Setting...' : reminderForm.recurring ? 'Set Recurring Reminder' : 'Set Reminder'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Distribution Modal */}
+      {distributionDeal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Record Distribution for {distributionDeal.communityName}
+              </h2>
+              <button
+                onClick={() => {
+                  setDistributionDeal(null)
+                  setDistributionForm({
+                    amount: '',
+                    type: 'REVENUE_SHARE',
+                    txLink: '',
+                    paidAt: new Date().toISOString().split('T')[0],
+                    notes: '',
+                  })
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddDistribution} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Distribution Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={distributionForm.type}
+                  onChange={(e) => setDistributionForm({ ...distributionForm, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                >
+                  {DISTRIBUTION_TYPES.map(type => (
+                    <option key={type} value={type}>{DISTRIBUTION_TYPE_LABELS[type]}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Amount ($)
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={distributionForm.amount}
+                  onChange={(e) => setDistributionForm({ ...distributionForm, amount: e.target.value })}
+                  placeholder="0.00"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Payment Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={distributionForm.paidAt}
+                  onChange={(e) => setDistributionForm({ ...distributionForm, paidAt: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Transaction Link
+                </label>
+                <input
+                  type="url"
+                  value={distributionForm.txLink}
+                  onChange={(e) => setDistributionForm({ ...distributionForm, txLink: e.target.value })}
+                  placeholder="https://etherscan.io/tx/..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Notes
+                </label>
+                <input
+                  type="text"
+                  value={distributionForm.notes}
+                  onChange={(e) => setDistributionForm({ ...distributionForm, notes: e.target.value })}
+                  placeholder="Optional notes about this distribution"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDistributionDeal(null)
+                    setDistributionForm({
+                      amount: '',
+                      type: 'REVENUE_SHARE',
+                      txLink: '',
+                      paidAt: new Date().toISOString().split('T')[0],
+                      notes: '',
+                    })
+                  }}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isPending ? 'Recording...' : 'Record Distribution'}
                 </button>
               </div>
             </form>

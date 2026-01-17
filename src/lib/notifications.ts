@@ -303,6 +303,8 @@ async function sendDealReminderNotificationForLevel(
     dueAt: Date
     note: string | null
     type: string
+    recurring?: boolean
+    frequency?: string | null
     deal: { communityName: string; assignee: { name: string; email: string; slackUserId: string | null; telegramChatId: string | null; notifyOnReminder: boolean; timezone: string } | null }
   },
   level: NotificationLevel,
@@ -563,7 +565,7 @@ function formatReminderMessage(
 
 // Helper: Format deal reminder message
 function formatDealReminderMessage(
-  reminder: { dueAt: Date; note: string | null; type: string; deal: { communityName: string; assignee: { name: string } | null } },
+  reminder: { dueAt: Date; note: string | null; type: string; recurring?: boolean; frequency?: string | null; deal: { communityName: string; assignee: { name: string } | null } },
   timeUntil: string,
   timezone: string
 ) {
@@ -580,6 +582,9 @@ function formatDealReminderMessage(
   message += `⏰ Due in: ${timeUntil}\n`
   message += `📅 Due: ${dueTime} (${tzAbbr})\n`
   message += `🏷️ Type: ${reminder.type}\n`
+  if (reminder.recurring && reminder.frequency) {
+    message += `🔄 Recurring: ${reminder.frequency}\n`
+  }
   if (reminder.note) {
     message += `📝 Note: ${reminder.note}\n`
   }
