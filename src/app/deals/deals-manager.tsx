@@ -14,9 +14,9 @@ import {
   type CreateDealInput
 } from '@/lib/deal-actions'
 import {
-  createDistribution, deleteDistribution,
-  DISTRIBUTION_TYPES
+  createDistribution, deleteDistribution
 } from '@/lib/distribution-actions'
+import { DISTRIBUTION_TYPES } from '@/lib/distribution-types'
 import { Decimal } from '@prisma/client/runtime/library'
 
 type Distribution = {

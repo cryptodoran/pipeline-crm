@@ -7,9 +7,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
-  createDistribution, updateDistribution, deleteDistribution,
-  DISTRIBUTION_TYPES
+  createDistribution, deleteDistribution
 } from '@/lib/distribution-actions'
+import { DISTRIBUTION_TYPES, DISTRIBUTION_TYPE_LABELS } from '@/lib/distribution-types'
 import { Decimal } from '@prisma/client/runtime/library'
 
 type Distribution = {
@@ -36,14 +36,6 @@ type Deal = {
 interface DistributionsManagerProps {
   initialDistributions: Distribution[]
   deals: Deal[]
-}
-
-const DISTRIBUTION_TYPE_LABELS: Record<string, string> = {
-  ADVISOR_TOKENS: 'Advisor Tokens',
-  REVENUE_SHARE: 'Revenue Share',
-  TOKEN_ALLOCATION: 'Token Allocation',
-  FEE: 'Fee',
-  OTHER: 'Other',
 }
 
 const getTypeColor = (type: string) => {

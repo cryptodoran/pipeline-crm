@@ -4,17 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from './db'
 import { Decimal } from '@prisma/client/runtime/library'
 
-// Distribution types
-export const DISTRIBUTION_TYPES = [
-  'ADVISOR_TOKENS',
-  'REVENUE_SHARE',
-  'TOKEN_ALLOCATION',
-  'FEE',
-  'OTHER',
-] as const
-
-export type DistributionType = (typeof DISTRIBUTION_TYPES)[number]
-
 export type CreateDistributionInput = {
   dealId: string
   amount?: number
