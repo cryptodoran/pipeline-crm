@@ -34,16 +34,33 @@ export const STAGE_COLORS: Record<PipelineStage, string> = {
   LOST: 'bg-slate-500',
 }
 
-// Social platform URL builders
+// Helper to normalize social handles - returns URL as-is or extracts username
+const normalizeHandle = (input: string): string => {
+  const trimmed = input.trim()
+  // If it's already a URL, return as-is
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed
+  }
+  // Strip leading @ if present
+  return trimmed.replace(/^@/, '')
+}
+
+// Check if input is already a full URL
+const isUrl = (input: string): boolean => {
+  const trimmed = input.trim()
+  return trimmed.startsWith('http://') || trimmed.startsWith('https://')
+}
+
+// Social platform URL builders - handles usernames, @usernames, or full URLs
 export const SOCIAL_URLS = {
-  telegram: (handle: string) => `https://t.me/${handle}`,
-  twitter: (handle: string) => `https://x.com/${handle}`,
-  farcaster: (handle: string) => `https://warpcast.com/${handle}`,
-  tiktok: (handle: string) => `https://tiktok.com/@${handle}`,
-  youtube: (handle: string) => `https://youtube.com/@${handle}`,
-  twitch: (handle: string) => `https://twitch.tv/${handle}`,
-  instagram: (handle: string) => `https://instagram.com/${handle}`,
-  email: (email: string) => `mailto:${email}`,
+  telegram: (handle: string) => isUrl(handle) ? handle : `https://t.me/${normalizeHandle(handle)}`,
+  twitter: (handle: string) => isUrl(handle) ? handle : `https://x.com/${normalizeHandle(handle)}`,
+  farcaster: (handle: string) => isUrl(handle) ? handle : `https://warpcast.com/${normalizeHandle(handle)}`,
+  tiktok: (handle: string) => isUrl(handle) ? handle : `https://tiktok.com/@${normalizeHandle(handle)}`,
+  youtube: (handle: string) => isUrl(handle) ? handle : `https://youtube.com/@${normalizeHandle(handle)}`,
+  twitch: (handle: string) => isUrl(handle) ? handle : `https://twitch.tv/${normalizeHandle(handle)}`,
+  instagram: (handle: string) => isUrl(handle) ? handle : `https://instagram.com/${normalizeHandle(handle)}`,
+  email: (email: string) => email.startsWith('mailto:') ? email : `mailto:${email.trim()}`,
 } as const
 
 export type SocialPlatform = keyof typeof SOCIAL_URLS
