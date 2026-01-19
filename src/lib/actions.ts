@@ -33,6 +33,7 @@ export async function createLead(data: {
   email?: string
   assigneeId?: string
   source?: string
+  stage?: string
   initialNote?: string
   authorId?: string // Current user ID for note authorship
 }) {
@@ -52,7 +53,7 @@ export async function createLead(data: {
       email: validated.email || null,
       assigneeId: validated.assigneeId || null,
       source: validated.source || null,
-      stage: 'NEW',
+      stage: validated.stage || 'NEW',
     },
   })
 

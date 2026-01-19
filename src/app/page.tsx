@@ -39,7 +39,7 @@ export default async function Home() {
           <StageSettings stages={stagesData} />
           <ImportButton />
           <ExportButton leads={leads} />
-          <AddLeadButton teamMembers={teamMembers} currentUserId={currentUserId} />
+          <AddLeadButton teamMembers={teamMembers} currentUserId={currentUserId} stages={stagesData} />
         </div>
       </div>
 

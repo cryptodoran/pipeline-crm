@@ -11,14 +11,26 @@ type TeamMember = {
   email: string
 }
 
+type Stage = {
+  id: string
+  name: string
+  key: string
+  color: string
+  isDefault: boolean
+}
+
 interface AddLeadButtonProps {
   teamMembers: TeamMember[]
   currentUserId?: string | null
+  stages: Stage[]
 }
 
-export function AddLeadButton({ teamMembers, currentUserId }: AddLeadButtonProps) {
+export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  // Find the default stage key
+  const defaultStage = stages.find(s => s.isDefault)?.key || stages[0]?.key || 'NEW'
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,6 +44,7 @@ export function AddLeadButton({ teamMembers, currentUserId }: AddLeadButtonProps
     email: '',
     assigneeId: '',
     source: '',
+    stage: defaultStage,
     initialNote: '',
   })
 
@@ -52,6 +65,7 @@ export function AddLeadButton({ teamMembers, currentUserId }: AddLeadButtonProps
         email: formData.email.trim() || undefined,
         assigneeId: formData.assigneeId || undefined,
         source: formData.source || undefined,
+        stage: formData.stage || undefined,
         initialNote: formData.initialNote.trim() || undefined,
         authorId: currentUserId || undefined,
       })
@@ -67,6 +81,7 @@ export function AddLeadButton({ teamMembers, currentUserId }: AddLeadButtonProps
         email: '',
         assigneeId: '',
         source: '',
+        stage: defaultStage,
         initialNote: '',
       })
       setIsOpen(false)
@@ -211,6 +226,24 @@ export function AddLeadButton({ teamMembers, currentUserId }: AddLeadButtonProps
                   {LEAD_SOURCES.map(source => (
                     <option key={source} value={source}>
                       {source}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Stage */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stage
+                </label>
+                <select
+                  value={formData.stage}
+                  onChange={e => setFormData({ ...formData, stage: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {stages.map(stage => (
+                    <option key={stage.key} value={stage.key}>
+                      {stage.name}
                     </option>
                   ))}
                 </select>

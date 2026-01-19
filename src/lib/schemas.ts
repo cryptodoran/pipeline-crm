@@ -17,6 +17,7 @@ export const createLeadSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   assigneeId: z.string().cuid().optional(),
   source: z.enum(LEAD_SOURCES as readonly [string, ...string[]]).optional(),
+  stage: z.string().optional(),
 })
 
 export const updateLeadSchema = z.object({
