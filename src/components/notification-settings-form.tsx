@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Mail, Send, Check, X, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { updateNotificationSettings, testNotificationChannel } from '@/lib/notifications'
+import { updateNotificationSettings, testNotificationChannel } from '@/lib/notification-actions'
 
 interface NotificationSettings {
   id: string

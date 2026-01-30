@@ -1,7 +1,4 @@
-'use server'
-
 import { prisma } from './db'
-import { revalidatePath } from 'next/cache'
 
 // Preset notification time windows in minutes
 const NOTIFICATION_PRESETS = {
@@ -34,31 +31,6 @@ export async function getNotificationSettings() {
   }
 
   return settings
-}
-
-export async function updateNotificationSettings(data: {
-  emailEnabled?: boolean
-  emailAddress?: string | null
-  telegramEnabled?: boolean
-  telegramChatId?: string | null
-  telegramBotToken?: string | null
-  slackEnabled?: boolean
-  slackWebhookUrl?: string | null
-  slackChannel?: string | null
-  notify1DayBefore?: boolean
-  notify1HourBefore?: boolean
-  notify30MinBefore?: boolean
-  notify15MinBefore?: boolean
-}) {
-  const settings = await getNotificationSettings()
-
-  const updated = await prisma.notificationSettings.update({
-    where: { id: settings.id },
-    data,
-  })
-
-  revalidatePath('/settings')
-  return updated
 }
 
 // Get enabled notification levels from settings
@@ -481,8 +453,8 @@ export async function sendDealReminderNotification(reminderId: string) {
   return { success: false, message: 'No applicable notification level' }
 }
 
-// Test notification channels
-export async function testNotificationChannel(channel: 'email' | 'telegram' | 'slack') {
+// Test notification channels (called via notification-actions.ts server action wrapper)
+export async function testNotificationChannelInternal(channel: 'email' | 'telegram' | 'slack') {
   const settings = await getNotificationSettings()
   const testMessage = '🔔 Test notification from Pipeline CRM - Your notifications are working!'
 
