@@ -620,7 +620,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                         <h4 className="font-medium text-gray-900 dark:text-white text-sm">Financial Terms</h4>
                         <div className="text-sm text-gray-600 dark:text-gray-300">
                           <p>Fee: {formatFeeAsBps(deal.fee)}</p>
-                          <p>Referral Code: {deal.referralCode || '-'}</p>
+                          <p>Faction Referral Code: {deal.referralCode || '-'}</p>
                           <p>Rev Share: {formatPercent(deal.referralRevShare)}</p>
                         </div>
                       </div>
@@ -954,7 +954,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referral Code</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Faction Referral Code</label>
                     <input
                       type="text"
                       value={formData.referralCode}
