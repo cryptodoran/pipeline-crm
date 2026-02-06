@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Lead {
@@ -138,6 +139,11 @@ model Deal {
   communityName     String   // Trading community name
   contactUsername   String?  // Contact point username
   contactPlatform   String?  // telegram, discord, twitter, etc.
+
+  // DeFi App integration
+  defiAppUsername   String?  // Partner's DeFi app username
+  defiAppEvm        String?  // Partner's EVM wallet address
+  defiAppSvm        String?  // Partner's SVM (Solana) wallet address
 
   // Assignment
   assigneeId        String?

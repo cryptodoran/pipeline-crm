@@ -12,6 +12,9 @@ export type CreateDealInput = {
   communityName: string
   contactUsername?: string
   contactPlatform?: string
+  defiAppUsername?: string
+  defiAppEvm?: string
+  defiAppSvm?: string
   assigneeId?: string | null
   fee?: number
   referralCode?: string
@@ -36,6 +39,9 @@ export async function createDeal(data: CreateDealInput) {
       communityName: data.communityName,
       contactUsername: data.contactUsername || null,
       contactPlatform: data.contactPlatform || null,
+      defiAppUsername: data.defiAppUsername || null,
+      defiAppEvm: data.defiAppEvm || null,
+      defiAppSvm: data.defiAppSvm || null,
       assigneeId: data.assigneeId || null,
       fee: data.fee ? new Decimal(data.fee) : null,
       referralCode: data.referralCode || null,
@@ -64,6 +70,9 @@ export async function updateDeal(id: string, data: Partial<CreateDealInput>) {
   if (data.communityName !== undefined) updateData.communityName = data.communityName
   if (data.contactUsername !== undefined) updateData.contactUsername = data.contactUsername || null
   if (data.contactPlatform !== undefined) updateData.contactPlatform = data.contactPlatform || null
+  if (data.defiAppUsername !== undefined) updateData.defiAppUsername = data.defiAppUsername || null
+  if (data.defiAppEvm !== undefined) updateData.defiAppEvm = data.defiAppEvm || null
+  if (data.defiAppSvm !== undefined) updateData.defiAppSvm = data.defiAppSvm || null
   if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId || null
   if (data.fee !== undefined) updateData.fee = data.fee ? new Decimal(data.fee) : null
   if (data.referralCode !== undefined) updateData.referralCode = data.referralCode || null

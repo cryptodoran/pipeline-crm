@@ -49,6 +49,9 @@ type Deal = {
   communityName: string
   contactUsername: string | null
   contactPlatform: string | null
+  defiAppUsername: string | null
+  defiAppEvm: string | null
+  defiAppSvm: string | null
   assigneeId: string | null
   assignee: TeamMember | null
   fee: Decimal | null
@@ -96,6 +99,9 @@ type FormDataStrings = {
   communityName: string
   contactUsername: string
   contactPlatform: string
+  defiAppUsername: string
+  defiAppEvm: string
+  defiAppSvm: string
   assigneeId: string
   fee: string
   referralCode: string
@@ -118,6 +124,9 @@ const emptyFormData: FormDataStrings = {
   communityName: '',
   contactUsername: '',
   contactPlatform: 'telegram',
+  defiAppUsername: '',
+  defiAppEvm: '',
+  defiAppSvm: '',
   assigneeId: '',
   fee: '',
   referralCode: '',
@@ -142,6 +151,9 @@ function formDataToInput(data: FormDataStrings): CreateDealInput {
     communityName: data.communityName,
     contactUsername: data.contactUsername || undefined,
     contactPlatform: data.contactPlatform || undefined,
+    defiAppUsername: data.defiAppUsername || undefined,
+    defiAppEvm: data.defiAppEvm || undefined,
+    defiAppSvm: data.defiAppSvm || undefined,
     assigneeId: data.assigneeId || undefined,
     fee: data.fee ? parseFloat(data.fee) : undefined,
     referralCode: data.referralCode || undefined,
@@ -198,6 +210,9 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
       communityName: deal.communityName,
       contactUsername: deal.contactUsername || '',
       contactPlatform: deal.contactPlatform || 'telegram',
+      defiAppUsername: deal.defiAppUsername || '',
+      defiAppEvm: deal.defiAppEvm || '',
+      defiAppSvm: deal.defiAppSvm || '',
       assigneeId: deal.assigneeId || '',
       fee: deal.fee ? String(deal.fee) : '',
       referralCode: deal.referralCode || '',
@@ -588,6 +603,18 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                         </div>
                       </div>
 
+                      {/* DeFi App */}
+                      {(deal.defiAppUsername || deal.defiAppEvm || deal.defiAppSvm) && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">DeFi App</h4>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            {deal.defiAppUsername && <p>Username: {deal.defiAppUsername}</p>}
+                            {deal.defiAppEvm && <p className="break-all">EVM: {deal.defiAppEvm}</p>}
+                            {deal.defiAppSvm && <p className="break-all">SVM: {deal.defiAppSvm}</p>}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Financial */}
                       <div className="space-y-2">
                         <h4 className="font-medium text-gray-900 dark:text-white text-sm">Financial Terms</h4>
@@ -870,6 +897,43 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                         <option key={platform} value={platform}>{platform}</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* DeFi App Integration */}
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white mb-3">DeFi App Integration</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">DeFi App Username</label>
+                    <input
+                      type="text"
+                      value={formData.defiAppUsername}
+                      onChange={(e) => setFormData({ ...formData, defiAppUsername: e.target.value })}
+                      placeholder="Partner username"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">DeFi App EVM Address</label>
+                    <input
+                      type="text"
+                      value={formData.defiAppEvm}
+                      onChange={(e) => setFormData({ ...formData, defiAppEvm: e.target.value })}
+                      placeholder="0x..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">DeFi App SVM Address</label>
+                    <input
+                      type="text"
+                      value={formData.defiAppSvm}
+                      onChange={(e) => setFormData({ ...formData, defiAppSvm: e.target.value })}
+                      placeholder="Solana address..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
                   </div>
                 </div>
               </div>
