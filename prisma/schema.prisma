@@ -140,8 +140,8 @@ model Deal {
   contactUsername   String?  // Contact point username
   contactPlatform   String?  // telegram, discord, twitter, etc.
 
-  // DeFi App integration
-  defiAppUsername   String?  // Partner's DeFi app username
+  // Defi App integration
+  defiAppUsername   String?  // Partner's Defi app username
   defiAppEvm        String?  // Partner's EVM wallet address
   defiAppSvm        String?  // Partner's SVM (Solana) wallet address
 

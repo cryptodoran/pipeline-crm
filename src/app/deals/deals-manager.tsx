@@ -603,10 +603,10 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                         </div>
                       </div>
 
-                      {/* DeFi App */}
+                      {/* Defi App */}
                       {(deal.defiAppUsername || deal.defiAppEvm || deal.defiAppSvm) && (
                         <div className="space-y-2">
-                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">DeFi App</h4>
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">Defi App</h4>
                           <div className="text-sm text-gray-600 dark:text-gray-300">
                             {deal.defiAppUsername && <p>Username: {deal.defiAppUsername}</p>}
                             {deal.defiAppEvm && <p className="break-all">EVM: {deal.defiAppEvm}</p>}
@@ -901,12 +901,12 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                 </div>
               </div>
 
-              {/* DeFi App Integration */}
+              {/* Defi App Integration */}
               <div>
-                <h3 className="font-medium text-gray-900 dark:text-white mb-3">DeFi App Integration</h3>
+                <h3 className="font-medium text-gray-900 dark:text-white mb-3">Defi App Integration</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">DeFi App Username</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Defi App Username</label>
                     <input
                       type="text"
                       value={formData.defiAppUsername}
@@ -916,7 +916,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">DeFi App EVM Address</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Defi App EVM Address</label>
                     <input
                       type="text"
                       value={formData.defiAppEvm}
@@ -926,7 +926,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">DeFi App SVM Address</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Defi App SVM Address</label>
                     <input
                       type="text"
                       value={formData.defiAppSvm}
