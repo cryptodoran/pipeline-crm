@@ -603,7 +603,7 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                 {/* Expanded Details */}
                 {isExpanded && (
                   <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                       {/* Contact Info */}
                       <div className="space-y-2">
                         <h4 className="font-medium text-gray-900 dark:text-white text-sm">Contact</h4>
