@@ -21,6 +21,7 @@ type Lead = {
   website: string | null
   linkedin: string | null
   pitchAngle: string | null
+  source: string | null
   assignee: { id: string; name: string; email: string } | null
   _count: { notes: number }
   createdAt?: Date
@@ -56,6 +57,7 @@ export function ExportButton({ leads }: ExportButtonProps) {
       'Website',
       'LinkedIn',
       'Pitch Angle',
+      'Source',
       'Assignee',
       'Notes Count',
       'Created At',
@@ -79,6 +81,7 @@ export function ExportButton({ leads }: ExportButtonProps) {
       lead.website || '',
       lead.linkedin || '',
       escapeCsvField(lead.pitchAngle || ''),
+      lead.source || '',
       lead.assignee?.name || '',
       lead._count.notes.toString(),
       lead.createdAt ? new Date(lead.createdAt).toISOString() : '',
