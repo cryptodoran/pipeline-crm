@@ -2,8 +2,15 @@
 
 import { useState, useTransition } from 'react'
 import { Plus, X } from 'lucide-react'
-import { createLead } from '@/lib/actions'
+import { createLead, addTagToLead } from '@/lib/actions'
 import { LEAD_SOURCES } from '@/lib/types'
+import { TagInput } from './tag-input'
+
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
 
 type TeamMember = {
   id: string
@@ -47,13 +54,14 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
     stage: defaultStage,
     initialNote: '',
   })
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name.trim()) return
 
     startTransition(async () => {
-      await createLead({
+      const lead = await createLead({
         name: formData.name.trim(),
         telegram: formData.telegram.trim() || undefined,
         twitter: formData.twitter.trim() || undefined,
@@ -69,6 +77,12 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
         initialNote: formData.initialNote.trim() || undefined,
         authorId: currentUserId || undefined,
       })
+
+      // Add tags to the lead
+      for (const tag of selectedTags) {
+        await addTagToLead(lead.id, tag.id)
+      }
+
       setFormData({
         name: '',
         telegram: '',
@@ -84,6 +98,7 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
         stage: defaultStage,
         initialNote: '',
       })
+      setSelectedTags([])
       setIsOpen(false)
     })
   }
@@ -229,6 +244,18 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tags (optional)
+                </label>
+                <TagInput
+                  selectedTags={selectedTags}
+                  onChange={setSelectedTags}
+                  placeholder="Type to add tags..."
+                />
               </div>
 
               {/* Stage */}

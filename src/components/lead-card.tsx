@@ -25,6 +25,12 @@ type Reminder = {
   completed: boolean
 }
 
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
 type Lead = {
   id: string
   name: string
@@ -39,13 +45,9 @@ type Lead = {
   email: string | null
   source: string | null
   assignee: { id: string; name: string; email: string; color?: string } | null
+  tags: Tag[]
   reminders?: Reminder[]
-  notes: Array<{
-    id: string
-    content: string
-    createdAt: Date
-    author: { name: string }
-  }>
+  _count: { notes: number }
 }
 
 type TeamMember = {
@@ -213,6 +215,21 @@ export function LeadCard({
           </div>
         )}
 
+        {/* Tags */}
+        {lead.tags.length > 0 && (
+          <div className="flex gap-1 mb-2 flex-wrap">
+            {lead.tags.map(tag => (
+              <span
+                key={tag.id}
+                className="inline-block px-1.5 py-0.5 rounded text-xs font-medium"
+                style={{ backgroundColor: tag.color + '20', color: tag.color }}
+              >
+                {tag.name}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Assignee and notes count */}
         <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1">
@@ -231,8 +248,8 @@ export function LeadCard({
               <span className="text-gray-400 dark:text-gray-500">Unassigned</span>
             )}
           </div>
-          {lead.notes.length > 0 && (
-            <span>{lead.notes.length} note{lead.notes.length !== 1 ? 's' : ''}</span>
+          {lead._count.notes > 0 && (
+            <span>{lead._count.notes} note{lead._count.notes !== 1 ? 's' : ''}</span>
           )}
         </div>
       </div>

@@ -1,13 +1,27 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { X, Trash2, ExternalLink, Clock, Edit2, Save } from 'lucide-react'
+import { useState, useTransition, useEffect } from 'react'
+import { X, Trash2, ExternalLink, Clock, Edit2, Save, Loader2 } from 'lucide-react'
 import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
-import { updateLead, deleteLead, addNote, deleteNote, assignLead, updateLeadStage, archiveLead } from '@/lib/actions'
+import { updateLead, deleteLead, addNote, deleteNote, assignLead, updateLeadStage, archiveLead, addTagToLead, removeTagFromLead, getLead } from '@/lib/actions'
 import { ReminderForm } from './reminder-form'
+import { TagInput } from './tag-input'
 import { toast } from 'sonner'
 
-type Lead = {
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
+type Note = {
+  id: string
+  content: string
+  createdAt: Date
+  author: { name: string }
+}
+
+type LeadBasic = {
   id: string
   name: string
   stage: string
@@ -20,12 +34,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
-  notes: Array<{
-    id: string
-    content: string
-    createdAt: Date
-    author: { name: string }
-  }>
+  tags: Tag[]
 }
 
 type TeamMember = {
@@ -35,7 +44,7 @@ type TeamMember = {
 }
 
 interface LeadDetailModalProps {
-  lead: Lead
+  lead: LeadBasic
   teamMembers: TeamMember[]
   stages?: string[]
   stageLabels?: Record<string, string>
@@ -58,6 +67,8 @@ export function LeadDetailModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showReminderForm, setShowReminderForm] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false)
   const [editForm, setEditForm] = useState({
     name: lead.name,
     telegram: lead.telegram || '',
@@ -69,6 +80,19 @@ export function LeadDetailModal({
     instagram: lead.instagram || '',
     email: lead.email || '',
   })
+
+  // Fetch notes when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoadingNotes(true)
+      getLead(lead.id).then((fullLead) => {
+        if (fullLead?.notes) {
+          setNotes(fullLead.notes as Note[])
+        }
+        setIsLoadingNotes(false)
+      })
+    }
+  }, [isOpen, lead.id])
 
   if (!isOpen) return null
 
@@ -89,9 +113,17 @@ export function LeadDetailModal({
     // Use current user as author
     const authorId = currentUserId || teamMembers[0]?.id
     if (!authorId) return
+    const author = teamMembers.find(m => m.id === authorId)
 
     startTransition(async () => {
-      await addNote(lead.id, noteContent.trim(), authorId)
+      const newNote = await addNote(lead.id, noteContent.trim(), authorId)
+      // Add to local state immediately
+      setNotes(prev => [{
+        id: newNote.id,
+        content: newNote.content,
+        createdAt: newNote.createdAt,
+        author: { name: author?.name || 'Unknown' }
+      }, ...prev])
       setNoteContent('')
     })
   }
@@ -115,6 +147,8 @@ export function LeadDetailModal({
   const handleDeleteNote = (noteId: string) => {
     startTransition(async () => {
       await deleteNote(noteId)
+      // Remove from local state
+      setNotes(prev => prev.filter(n => n.id !== noteId))
       toast.success('Note deleted')
     })
   }
@@ -168,7 +202,7 @@ export function LeadDetailModal({
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">{lead.name}</h2>
             )}
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Created {new Date(lead.notes[lead.notes.length - 1]?.createdAt || Date.now()).toLocaleDateString()}
+              Created {new Date(notes[notes.length - 1]?.createdAt || Date.now()).toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -257,6 +291,32 @@ export function LeadDetailModal({
             </select>
           </div>
 
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Tags
+            </label>
+            <TagInput
+              selectedTags={lead.tags}
+              onChange={async (newTags) => {
+                // Find added tags
+                const addedTags = newTags.filter(t => !lead.tags.some(lt => lt.id === t.id))
+                // Find removed tags
+                const removedTags = lead.tags.filter(lt => !newTags.some(t => t.id === lt.id))
+
+                startTransition(async () => {
+                  for (const tag of addedTags) {
+                    await addTagToLead(lead.id, tag.id)
+                  }
+                  for (const tag of removedTags) {
+                    await removeTagFromLead(lead.id, tag.id)
+                  }
+                })
+              }}
+              placeholder="Add tags..."
+            />
+          </div>
+
           {/* Social handles */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -309,7 +369,7 @@ export function LeadDetailModal({
           {/* Notes section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes ({lead.notes.length})
+              Notes ({isLoadingNotes ? '...' : notes.length})
             </label>
 
             {/* Add note form */}
@@ -332,12 +392,16 @@ export function LeadDetailModal({
 
             {/* Notes timeline */}
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {lead.notes.length === 0 ? (
+              {isLoadingNotes ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                </div>
+              ) : notes.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-4">
                   No notes yet. Add the first one above.
                 </p>
               ) : (
-                lead.notes.map(note => (
+                notes.map(note => (
                   <div key={note.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 group">
                     <div className="flex justify-between items-start gap-2">
                       <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap flex-1">{note.content}</p>

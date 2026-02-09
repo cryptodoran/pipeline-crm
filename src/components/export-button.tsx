@@ -16,7 +16,7 @@ type Lead = {
   instagram: string | null
   email: string | null
   assignee: { id: string; name: string; email: string } | null
-  notes: Array<{ id: string; content: string; createdAt: Date; author: { name: string } }>
+  _count: { notes: number }
   createdAt?: Date
   updatedAt?: Date
 }
@@ -62,7 +62,7 @@ export function ExportButton({ leads }: ExportButtonProps) {
       lead.instagram || '',
       lead.email || '',
       lead.assignee?.name || '',
-      lead.notes.length.toString(),
+      lead._count.notes.toString(),
       lead.createdAt ? new Date(lead.createdAt).toISOString() : '',
     ])
 

@@ -20,6 +20,12 @@ import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
 import { BulkActionToolbar } from './bulk-action-toolbar'
 import { CheckSquare, Keyboard, RefreshCw } from 'lucide-react'
 
+type Tag = {
+  id: string
+  name: string
+  color: string
+}
+
 type Lead = {
   id: string
   name: string
@@ -34,12 +40,8 @@ type Lead = {
   email: string | null
   source: string | null
   assignee: { id: string; name: string; email: string; color?: string } | null
-  notes: Array<{
-    id: string
-    content: string
-    createdAt: Date
-    author: { name: string }
-  }>
+  tags: Tag[]
+  _count: { notes: number }
 }
 
 type TeamMember = {
@@ -238,7 +240,7 @@ export function KanbanBoard({
     setLocalLeadsByStage(prev => ({
       ...prev,
       [currentStage]: prev[currentStage].filter(l => l.id !== leadId),
-      [newStage]: [...prev[newStage], { ...lead, stage: newStage }],
+      [newStage]: [{ ...lead, stage: newStage }, ...prev[newStage]],
     }))
 
     // Server update

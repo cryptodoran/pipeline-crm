@@ -173,9 +173,8 @@ export async function getLeads() {
     include: {
       assignee: true,
       tags: true,
-      notes: {
-        include: { author: true },
-        orderBy: { createdAt: 'desc' },
+      _count: {
+        select: { notes: true },
       },
       reminders: {
         where: {
@@ -185,7 +184,7 @@ export async function getLeads() {
         take: 1,
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { updatedAt: 'desc' },
   })
 }
 
@@ -195,9 +194,8 @@ export async function getArchivedLeads() {
     include: {
       assignee: true,
       tags: true,
-      notes: {
-        include: { author: true },
-        orderBy: { createdAt: 'desc' },
+      _count: {
+        select: { notes: true },
       },
     },
     orderBy: { archivedAt: 'desc' },
