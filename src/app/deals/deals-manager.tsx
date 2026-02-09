@@ -52,6 +52,8 @@ type Deal = {
   defiAppUsername: string | null
   defiAppEvm: string | null
   defiAppSvm: string | null
+  eoaEvm: string | null
+  eoaSvm: string | null
   assigneeId: string | null
   assignee: TeamMember | null
   fee: Decimal | null
@@ -102,6 +104,8 @@ type FormDataStrings = {
   defiAppUsername: string
   defiAppEvm: string
   defiAppSvm: string
+  eoaEvm: string
+  eoaSvm: string
   assigneeId: string
   fee: string
   referralCode: string
@@ -127,6 +131,8 @@ const emptyFormData: FormDataStrings = {
   defiAppUsername: '',
   defiAppEvm: '',
   defiAppSvm: '',
+  eoaEvm: '',
+  eoaSvm: '',
   assigneeId: '',
   fee: '',
   referralCode: '',
@@ -154,6 +160,8 @@ function formDataToInput(data: FormDataStrings): CreateDealInput {
     defiAppUsername: data.defiAppUsername || undefined,
     defiAppEvm: data.defiAppEvm || undefined,
     defiAppSvm: data.defiAppSvm || undefined,
+    eoaEvm: data.eoaEvm || undefined,
+    eoaSvm: data.eoaSvm || undefined,
     assigneeId: data.assigneeId || undefined,
     fee: data.fee ? parseFloat(data.fee) : undefined,
     referralCode: data.referralCode || undefined,
@@ -213,6 +221,8 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
       defiAppUsername: deal.defiAppUsername || '',
       defiAppEvm: deal.defiAppEvm || '',
       defiAppSvm: deal.defiAppSvm || '',
+      eoaEvm: deal.eoaEvm || '',
+      eoaSvm: deal.eoaSvm || '',
       assigneeId: deal.assigneeId || '',
       fee: deal.fee ? String(deal.fee) : '',
       referralCode: deal.referralCode || '',
@@ -615,6 +625,17 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                         </div>
                       )}
 
+                      {/* EOA Wallets */}
+                      {(deal.eoaEvm || deal.eoaSvm) && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-gray-900 dark:text-white text-sm">EOA Wallets</h4>
+                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                            {deal.eoaEvm && <p className="break-all">EVM: {deal.eoaEvm}</p>}
+                            {deal.eoaSvm && <p className="break-all">SVM: {deal.eoaSvm}</p>}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Financial */}
                       <div className="space-y-2">
                         <h4 className="font-medium text-gray-900 dark:text-white text-sm">Financial Terms</h4>
@@ -931,6 +952,26 @@ export function DealsManager({ initialDeals, teamMembers }: DealsManagerProps) {
                       type="text"
                       value={formData.defiAppSvm}
                       onChange={(e) => setFormData({ ...formData, defiAppSvm: e.target.value })}
+                      placeholder="Solana address..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">EOA EVM Address</label>
+                    <input
+                      type="text"
+                      value={formData.eoaEvm}
+                      onChange={(e) => setFormData({ ...formData, eoaEvm: e.target.value })}
+                      placeholder="0x..."
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">EOA SVM Address</label>
+                    <input
+                      type="text"
+                      value={formData.eoaSvm}
+                      onChange={(e) => setFormData({ ...formData, eoaSvm: e.target.value })}
                       placeholder="Solana address..."
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />

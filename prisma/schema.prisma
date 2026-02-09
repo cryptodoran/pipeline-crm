@@ -145,6 +145,10 @@ model Deal {
   defiAppEvm        String?  // Partner's EVM wallet address
   defiAppSvm        String?  // Partner's SVM (Solana) wallet address
 
+  // EOA (Externally Owned Account) wallets
+  eoaEvm            String?  // EOA EVM wallet address
+  eoaSvm            String?  // EOA SVM (Solana) wallet address
+
   // Assignment
   assigneeId        String?
   assignee          TeamMember? @relation(fields: [assigneeId], references: [id])
