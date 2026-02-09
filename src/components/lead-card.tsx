@@ -16,6 +16,8 @@ import {
   User,
   Check,
   Bell,
+  Gamepad2,
+  Linkedin,
 } from 'lucide-react'
 
 type Reminder = {
@@ -43,6 +45,12 @@ type Lead = {
   twitch: string | null
   instagram: string | null
   email: string | null
+  altEmail: string | null
+  discord: string | null
+  phone: string | null
+  website: string | null
+  linkedin: string | null
+  pitchAngle: string | null
   source: string | null
   assignee: { id: string; name: string; email: string; color?: string } | null
   tags: Tag[]
@@ -77,6 +85,8 @@ const SOCIAL_ICONS: Record<SocialPlatform, React.ComponentType<{ className?: str
   twitch: Twitch,
   instagram: Instagram,
   email: Mail,
+  discord: Gamepad2,
+  linkedin: Linkedin,
 }
 
 export function LeadCard({

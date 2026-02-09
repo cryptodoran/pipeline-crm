@@ -49,6 +49,12 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
     twitch: '',
     instagram: '',
     email: '',
+    altEmail: '',
+    discord: '',
+    phone: '',
+    website: '',
+    linkedin: '',
+    pitchAngle: '',
     assigneeId: '',
     source: '',
     stage: defaultStage,
@@ -71,6 +77,12 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
         twitch: formData.twitch.trim() || undefined,
         instagram: formData.instagram.trim() || undefined,
         email: formData.email.trim() || undefined,
+        altEmail: formData.altEmail.trim() || undefined,
+        discord: formData.discord.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        website: formData.website.trim() || undefined,
+        linkedin: formData.linkedin.trim() || undefined,
+        pitchAngle: formData.pitchAngle.trim() || undefined,
         assigneeId: formData.assigneeId || undefined,
         source: formData.source || undefined,
         stage: formData.stage || undefined,
@@ -93,6 +105,12 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
         twitch: '',
         instagram: '',
         email: '',
+        altEmail: '',
+        discord: '',
+        phone: '',
+        website: '',
+        linkedin: '',
+        pitchAngle: '',
         assigneeId: '',
         source: '',
         stage: defaultStage,
@@ -205,6 +223,41 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
                     placeholder="Email"
                     className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
+                  <input
+                    type="email"
+                    value={formData.altEmail}
+                    onChange={e => setFormData({ ...formData, altEmail: e.target.value })}
+                    placeholder="Alt Email"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    type="text"
+                    value={formData.discord}
+                    onChange={e => setFormData({ ...formData, discord: e.target.value })}
+                    placeholder="Discord"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Phone Number"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    type="url"
+                    value={formData.website}
+                    onChange={e => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="Website"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    type="text"
+                    value={formData.linkedin}
+                    onChange={e => setFormData({ ...formData, linkedin: e.target.value })}
+                    placeholder="LinkedIn"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
               </div>
 
@@ -274,6 +327,20 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Pitch Angle */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Pitch Angle (optional)
+                </label>
+                <textarea
+                  value={formData.pitchAngle}
+                  onChange={e => setFormData({ ...formData, pitchAngle: e.target.value })}
+                  placeholder="How should we pitch this lead? What's the angle?"
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                />
               </div>
 
               {/* Initial Note */}

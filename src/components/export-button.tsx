@@ -15,6 +15,12 @@ type Lead = {
   twitch: string | null
   instagram: string | null
   email: string | null
+  altEmail: string | null
+  discord: string | null
+  phone: string | null
+  website: string | null
+  linkedin: string | null
+  pitchAngle: string | null
   assignee: { id: string; name: string; email: string } | null
   _count: { notes: number }
   createdAt?: Date

@@ -12,6 +12,12 @@ type Lead = {
   telegram: string | null
   twitter: string | null
   email: string | null
+  altEmail: string | null
+  discord: string | null
+  phone: string | null
+  website: string | null
+  linkedin: string | null
+  pitchAngle: string | null
   source: string | null
   archivedAt: Date | null
   assignee: { id: string; name: string } | null

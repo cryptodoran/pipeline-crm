@@ -61,6 +61,8 @@ export const SOCIAL_URLS = {
   twitch: (handle: string) => isUrl(handle) ? handle : `https://twitch.tv/${normalizeHandle(handle)}`,
   instagram: (handle: string) => isUrl(handle) ? handle : `https://instagram.com/${normalizeHandle(handle)}`,
   email: (email: string) => email.startsWith('mailto:') ? email : `mailto:${email.trim()}`,
+  discord: (handle: string) => handle, // Discord handles aren't linkable
+  linkedin: (handle: string) => isUrl(handle) ? handle : `https://linkedin.com/in/${normalizeHandle(handle)}`,
 } as const
 
 export type SocialPlatform = keyof typeof SOCIAL_URLS

@@ -31,6 +31,12 @@ export async function createLead(data: {
   twitch?: string
   instagram?: string
   email?: string
+  altEmail?: string
+  discord?: string
+  phone?: string
+  website?: string
+  linkedin?: string
+  pitchAngle?: string
   assigneeId?: string
   source?: string
   stage?: string
@@ -51,6 +57,12 @@ export async function createLead(data: {
       twitch: validated.twitch || null,
       instagram: validated.instagram || null,
       email: validated.email || null,
+      altEmail: validated.altEmail || null,
+      discord: validated.discord || null,
+      phone: validated.phone || null,
+      website: validated.website || null,
+      linkedin: validated.linkedin || null,
+      pitchAngle: validated.pitchAngle || null,
       assigneeId: validated.assigneeId || null,
       source: validated.source || null,
       stage: validated.stage || 'NEW',
@@ -88,6 +100,12 @@ export async function updateLead(
     twitch?: string
     instagram?: string
     email?: string
+    altEmail?: string
+    discord?: string
+    phone?: string
+    website?: string
+    linkedin?: string
+    pitchAngle?: string
     assigneeId?: string | null
     stage?: PipelineStage
     source?: string | null
@@ -604,6 +622,12 @@ type ImportLead = {
   twitch?: string
   instagram?: string
   email?: string
+  altEmail?: string
+  discord?: string
+  phone?: string
+  website?: string
+  linkedin?: string
+  pitchAngle?: string
 }
 
 export async function importLeads(leads: ImportLead[]): Promise<{ imported: number; skipped: number }> {
@@ -645,6 +669,12 @@ export async function importLeads(leads: ImportLead[]): Promise<{ imported: numb
         twitch: lead.twitch || null,
         instagram: lead.instagram || null,
         email: lead.email || null,
+        altEmail: lead.altEmail || null,
+        discord: lead.discord || null,
+        phone: lead.phone || null,
+        website: lead.website || null,
+        linkedin: lead.linkedin || null,
+        pitchAngle: lead.pitchAngle || null,
       },
     })
     imported++

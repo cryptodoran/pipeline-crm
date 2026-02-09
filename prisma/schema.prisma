@@ -21,6 +21,14 @@ model Lead {
   twitch    String?
   instagram String?
   email     String?
+  altEmail  String?  // Alternative email
+  discord   String?  // Discord handle
+  phone     String?  // Phone number
+  website   String?  // Website URL
+  linkedin  String?  // LinkedIn profile
+
+  // Sales context
+  pitchAngle String?  // How to pitch this lead (paragraph field)
 
   // Ownership & Status
   assigneeId String?

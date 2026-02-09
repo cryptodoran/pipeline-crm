@@ -33,6 +33,12 @@ type LeadBasic = {
   twitch: string | null
   instagram: string | null
   email: string | null
+  altEmail: string | null
+  discord: string | null
+  phone: string | null
+  website: string | null
+  linkedin: string | null
+  pitchAngle: string | null
   assignee: { id: string; name: string; email: string } | null
   tags: Tag[]
 }
@@ -79,6 +85,12 @@ export function LeadDetailModal({
     twitch: lead.twitch || '',
     instagram: lead.instagram || '',
     email: lead.email || '',
+    altEmail: lead.altEmail || '',
+    discord: lead.discord || '',
+    phone: lead.phone || '',
+    website: lead.website || '',
+    linkedin: lead.linkedin || '',
+    pitchAngle: lead.pitchAngle || '',
   })
 
   // Fetch notes when modal opens
@@ -169,13 +181,19 @@ export function LeadDetailModal({
         twitch: editForm.twitch || undefined,
         instagram: editForm.instagram || undefined,
         email: editForm.email || undefined,
+        altEmail: editForm.altEmail || undefined,
+        discord: editForm.discord || undefined,
+        phone: editForm.phone || undefined,
+        website: editForm.website || undefined,
+        linkedin: editForm.linkedin || undefined,
+        pitchAngle: editForm.pitchAngle || undefined,
       })
       toast.success('Lead updated')
       setIsEditing(false)
     })
   }
 
-  const socialPlatforms: SocialPlatform[] = ['telegram', 'twitter', 'farcaster', 'tiktok', 'youtube', 'twitch', 'instagram', 'email']
+  const socialPlatforms: SocialPlatform[] = ['telegram', 'twitter', 'farcaster', 'tiktok', 'youtube', 'twitch', 'instagram', 'email', 'discord', 'linkedin']
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -336,6 +354,36 @@ export function LeadDetailModal({
                     />
                   </div>
                 ))}
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Alt Email</label>
+                  <input
+                    type="email"
+                    value={editForm.altEmail}
+                    onChange={(e) => setEditForm({ ...editForm, altEmail: e.target.value })}
+                    placeholder="alt@example.com"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    placeholder="+1 (555) 123-4567"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Website</label>
+                  <input
+                    type="url"
+                    value={editForm.website}
+                    onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
+                    placeholder="https://example.com"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             ) : (
               <>
@@ -359,10 +407,67 @@ export function LeadDetailModal({
                 )
               })}
             </div>
-            {!socialPlatforms.some(p => lead[p]) && (
+            {/* Non-linkable contact fields */}
+            <div className="grid grid-cols-2 gap-2">
+              {lead.altEmail && (
+                <a
+                  href={`mailto:${lead.altEmail}`}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Alt Email</span>
+                  <span className="text-gray-500 dark:text-gray-400 truncate">{lead.altEmail}</span>
+                  <ExternalLink className="w-3 h-3 text-gray-400 ml-auto flex-shrink-0" />
+                </a>
+              )}
+              {lead.phone && (
+                <a
+                  href={`tel:${lead.phone}`}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Phone</span>
+                  <span className="text-gray-500 dark:text-gray-400 truncate">{lead.phone}</span>
+                  <ExternalLink className="w-3 h-3 text-gray-400 ml-auto flex-shrink-0" />
+                </a>
+              )}
+              {lead.website && (
+                <a
+                  href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-sm"
+                >
+                  <span className="font-medium text-gray-700 dark:text-gray-200">Website</span>
+                  <span className="text-gray-500 dark:text-gray-400 truncate">{lead.website}</span>
+                  <ExternalLink className="w-3 h-3 text-gray-400 ml-auto flex-shrink-0" />
+                </a>
+              )}
+            </div>
+            {!socialPlatforms.some(p => lead[p]) && !lead.altEmail && !lead.phone && !lead.website && (
               <p className="text-sm text-gray-400 dark:text-gray-500">No social handles added</p>
             )}
               </>
+            )}
+          </div>
+
+          {/* Pitch Angle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Pitch Angle
+            </label>
+            {isEditing ? (
+              <textarea
+                value={editForm.pitchAngle}
+                onChange={(e) => setEditForm({ ...editForm, pitchAngle: e.target.value })}
+                placeholder="How should we pitch this lead? What's the angle?"
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            ) : lead.pitchAngle ? (
+              <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                {lead.pitchAngle}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-400 dark:text-gray-500">No pitch angle set</p>
             )}
           </div>
 
