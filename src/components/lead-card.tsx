@@ -1,9 +1,7 @@
 'use client'
 
 import { useDraggable } from '@dnd-kit/core'
-import { useState } from 'react'
 import { SOCIAL_URLS, SocialPlatform, SOURCE_COLORS } from '@/lib/types'
-import { LeadDetailModal } from './lead-detail-modal'
 import {
   MessageCircle,
   Twitter,
@@ -73,6 +71,7 @@ interface LeadCardProps {
   selectionMode?: boolean
   isSelected?: boolean
   onSelectionChange?: (leadId: string, selected: boolean) => void
+  onOpenDetail?: (leadId: string) => void
   currentUserId?: string | null
 }
 
@@ -98,9 +97,9 @@ export function LeadCard({
   selectionMode = false,
   isSelected = false,
   onSelectionChange,
+  onOpenDetail,
   currentUserId,
 }: LeadCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: lead.id,
@@ -122,7 +121,7 @@ export function LeadCard({
     if (selectionMode) {
       onSelectionChange?.(lead.id, !isSelected)
     } else {
-      setIsModalOpen(true)
+      onOpenDetail?.(lead.id)
     }
   }
 
@@ -149,7 +148,6 @@ export function LeadCard({
   }
 
   return (
-    <>
       <div
         ref={setNodeRef}
         style={cardStyle}
@@ -263,16 +261,5 @@ export function LeadCard({
           )}
         </div>
       </div>
-
-      <LeadDetailModal
-        lead={lead}
-        teamMembers={teamMembers}
-        stages={stages}
-        stageLabels={stageLabels}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        currentUserId={currentUserId}
-      />
-    </>
   )
 }

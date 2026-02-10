@@ -75,6 +75,7 @@ export function LeadDetailModal({
   const [isEditing, setIsEditing] = useState(false)
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoadingNotes, setIsLoadingNotes] = useState(false)
+  const [localStage, setLocalStage] = useState(lead.stage)
   const [editForm, setEditForm] = useState({
     name: lead.name,
     telegram: lead.telegram || '',
@@ -93,7 +94,36 @@ export function LeadDetailModal({
     pitchAngle: lead.pitchAngle || '',
   })
 
-  // Fetch notes when modal opens
+  // Sync local stage when lead prop updates from server (after revalidation)
+  useEffect(() => {
+    setLocalStage(lead.stage)
+  }, [lead.stage])
+
+  // Sync edit form when a different lead is opened (lead.id changes)
+  useEffect(() => {
+    setEditForm({
+      name: lead.name,
+      telegram: lead.telegram || '',
+      twitter: lead.twitter || '',
+      farcaster: lead.farcaster || '',
+      tiktok: lead.tiktok || '',
+      youtube: lead.youtube || '',
+      twitch: lead.twitch || '',
+      instagram: lead.instagram || '',
+      email: lead.email || '',
+      altEmail: lead.altEmail || '',
+      discord: lead.discord || '',
+      phone: lead.phone || '',
+      website: lead.website || '',
+      linkedin: lead.linkedin || '',
+      pitchAngle: lead.pitchAngle || '',
+    })
+    setIsEditing(false)
+    setNoteContent('')
+    setShowDeleteConfirm(false)
+  }, [lead.id])
+
+  // Fetch notes when modal opens or lead changes
   useEffect(() => {
     if (isOpen) {
       setIsLoadingNotes(true)
@@ -109,6 +139,7 @@ export function LeadDetailModal({
   if (!isOpen) return null
 
   const handleStageChange = (newStage: string) => {
+    setLocalStage(newStage) // Optimistic update
     startTransition(async () => {
       await updateLeadStage(lead.id, newStage)
     })
@@ -276,7 +307,7 @@ export function LeadDetailModal({
               Pipeline Stage
             </label>
             <select
-              value={lead.stage}
+              value={localStage}
               onChange={e => handleStageChange(e.target.value)}
               disabled={isPending}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

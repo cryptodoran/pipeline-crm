@@ -15,6 +15,7 @@ import {
 import { updateLeadStage } from '@/lib/actions'
 import { PipelineColumn } from './pipeline-column'
 import { LeadCard } from './lead-card'
+import { LeadDetailModal } from './lead-detail-modal'
 import { SearchInput } from './search-input'
 import { FilterDropdown, FilterBadges, PlatformFilter } from './filter-dropdown'
 import { BulkActionToolbar } from './bulk-action-toolbar'
@@ -86,6 +87,7 @@ export function KanbanBoard({
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Sync local state when props change (from server refresh)
@@ -212,6 +214,19 @@ export function KanbanBoard({
   const activeLead = activeId
     ? Object.values(localLeadsByStage).flat().find(lead => lead.id === activeId)
     : null
+
+  // Find the lead being viewed in the detail modal (search across all stages)
+  const detailLead = selectedLeadId
+    ? Object.values(localLeadsByStage).flat().find(lead => lead.id === selectedLeadId) || null
+    : null
+
+  const handleOpenDetail = useCallback((leadId: string) => {
+    setSelectedLeadId(leadId)
+  }, [])
+
+  const handleCloseDetail = useCallback(() => {
+    setSelectedLeadId(null)
+  }, [])
 
   const hasActiveFilters = searchQuery || selectedFilters.length > 0 || selectedSources.length > 0
 
@@ -402,6 +417,7 @@ export function KanbanBoard({
               currentUserId={currentUserId}
               selectedLeadIds={selectedLeadIds}
               onSelectionChange={handleSelectionChange}
+              onOpenDetail={handleOpenDetail}
             />
           ))}
         </div>
@@ -412,6 +428,19 @@ export function KanbanBoard({
           <LeadCard lead={activeLead} teamMembers={teamMembers} stages={stages} stageLabels={stageLabels} isDragging />
         ) : null}
       </DragOverlay>
+
+      {/* Lead Detail Modal - rendered at board level so it persists across stage changes */}
+      {detailLead && (
+        <LeadDetailModal
+          lead={detailLead}
+          teamMembers={teamMembers}
+          stages={stages}
+          stageLabels={stageLabels}
+          isOpen={!!selectedLeadId}
+          onClose={handleCloseDetail}
+          currentUserId={currentUserId}
+        />
+      )}
 
       {/* Keyboard Help Button */}
       <button
