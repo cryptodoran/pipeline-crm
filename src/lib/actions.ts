@@ -7,6 +7,7 @@ import {
   createLeadSchema,
   updateLeadSchema,
   addNoteSchema,
+  updateNoteSchema,
   createTeamMemberSchema,
   createTagSchema,
   updateTagSchema,
@@ -31,6 +32,13 @@ function normalizePhone(value: string | null | undefined): string | null {
   if (!value) return null
   const digits = value.replace(/\D/g, '')
   return digits || null
+}
+
+function normalizeNameBase(value: string | null | undefined): string | null {
+  if (!value) return null
+  // Strip parenthetical suffixes like "(Shay)" for fuzzy name matching
+  const base = value.replace(/\s*\([^)]*\)\s*$/, '').trim().toLowerCase()
+  return base || null
 }
 
 export async function checkDuplicates(data: {
@@ -76,9 +84,18 @@ export async function checkDuplicates(data: {
     }
   }
 
-  // Name: case-insensitive exact match
+  // Name: exact match + fuzzy match via base name (strips parenthetical suffixes)
   if (data.name?.trim()) {
-    orConditions.push({ name: { equals: data.name.trim(), mode: 'insensitive' as const } })
+    const name = data.name.trim()
+    orConditions.push({ name: { equals: name, mode: 'insensitive' as const } })
+    // Match existing leads whose name starts with input name (e.g. "Humbled Trader" matches "Humbled Trader (Shay)")
+    orConditions.push({ name: { startsWith: name, mode: 'insensitive' as const } })
+    // Strip parenthetical suffix and match base name (e.g. "Humbled Trader (Shay)" matches "Humbled Trader")
+    const baseName = name.replace(/\s*\([^)]*\)\s*$/, '').trim()
+    if (baseName.toLowerCase() !== name.toLowerCase()) {
+      orConditions.push({ name: { equals: baseName, mode: 'insensitive' as const } })
+      orConditions.push({ name: { startsWith: baseName, mode: 'insensitive' as const } })
+    }
   }
 
   if (orConditions.length === 0) return []
@@ -135,9 +152,20 @@ export async function checkDuplicates(data: {
       }
     }
 
-    // Check name
-    if (data.name?.trim() && match.name.toLowerCase() === data.name.trim().toLowerCase()) {
-      matchedFields.push('name')
+    // Check name (exact, prefix, and base name matching)
+    if (data.name?.trim()) {
+      const inputName = data.name.trim().toLowerCase()
+      const matchName = match.name.toLowerCase()
+      const inputBase = normalizeNameBase(data.name)
+      const matchBase = normalizeNameBase(match.name)
+      if (
+        inputName === matchName ||
+        matchName.startsWith(inputName) ||
+        inputName.startsWith(matchName) ||
+        (inputBase && matchBase && inputBase === matchBase)
+      ) {
+        matchedFields.push('name')
+      }
     }
 
     // Only include if there's an actual field match (phone OR query may have produced false positives)
@@ -195,6 +223,11 @@ export async function sweepDuplicates(): Promise<{ duplicateCount: number; group
 
   for (const lead of leads) {
     addToMap('name', lead.name, lead.id)
+    // Also map base name (strip parenthetical suffix) so "X" and "X (Shay)" land in same bucket
+    const baseName = lead.name.replace(/\s*\([^)]*\)\s*$/, '').trim()
+    if (baseName.toLowerCase() !== lead.name.trim().toLowerCase()) {
+      addToMap('name', baseName, lead.id)
+    }
     // Cross-match emails: both email and altEmail go into the same "email" bucket
     addToMap('email', lead.email, lead.id)
     addToMap('email', lead.altEmail, lead.id)
@@ -499,6 +532,22 @@ export async function addNote(leadId: string, content: string, authorId: string)
       leadId,
       authorId,
     },
+    include: { author: true },
+  })
+  revalidatePath('/')
+  return note
+}
+
+export async function updateNote(noteId: string, content: string) {
+  const result = updateNoteSchema.safeParse({ content })
+  if (!result.success) {
+    const fieldErrors = result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')
+    return { error: fieldErrors }
+  }
+
+  const note = await prisma.note.update({
+    where: { id: noteId },
+    data: { content: result.data.content },
     include: { author: true },
   })
   revalidatePath('/')

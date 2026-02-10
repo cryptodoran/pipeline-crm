@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { X, Trash2, ExternalLink, Clock, Edit2, Save, Loader2 } from 'lucide-react'
+import { X, Trash2, ExternalLink, Clock, Edit2, Save, Loader2, Pencil } from 'lucide-react'
 import { SOCIAL_URLS, SocialPlatform } from '@/lib/types'
-import { updateLead, deleteLead, addNote, deleteNote, assignLead, updateLeadStage, archiveLead, addTagToLead, removeTagFromLead, getLead } from '@/lib/actions'
+import { updateLead, deleteLead, addNote, updateNote, deleteNote, assignLead, updateLeadStage, archiveLead, addTagToLead, removeTagFromLead, getLead } from '@/lib/actions'
 import { ReminderForm } from './reminder-form'
 import { TagInput } from './tag-input'
 import { toast } from 'sonner'
@@ -75,6 +75,8 @@ export function LeadDetailModal({
   const [isEditing, setIsEditing] = useState(false)
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoadingNotes, setIsLoadingNotes] = useState(false)
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
+  const [editingNoteContent, setEditingNoteContent] = useState('')
   const [localStage, setLocalStage] = useState(lead.stage)
   const [editForm, setEditForm] = useState({
     name: lead.name,
@@ -193,6 +195,32 @@ export function LeadDetailModal({
       // Remove from local state
       setNotes(prev => prev.filter(n => n.id !== noteId))
       toast.success('Note deleted')
+    })
+  }
+
+  const handleStartEditNote = (note: Note) => {
+    setEditingNoteId(note.id)
+    setEditingNoteContent(note.content)
+  }
+
+  const handleCancelEditNote = () => {
+    setEditingNoteId(null)
+    setEditingNoteContent('')
+  }
+
+  const handleSaveNote = (noteId: string) => {
+    if (!editingNoteContent.trim()) return
+    startTransition(async () => {
+      const result = await updateNote(noteId, editingNoteContent.trim())
+      if (result && 'error' in result) {
+        toast.error(result.error)
+        return
+      }
+      // Update local state
+      setNotes(prev => prev.map(n => n.id === noteId ? { ...n, content: editingNoteContent.trim() } : n))
+      setEditingNoteId(null)
+      setEditingNoteContent('')
+      toast.success('Note updated')
     })
   }
 
@@ -392,7 +420,7 @@ export function LeadDetailModal({
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Alt Email</label>
                   <input
-                    type="email"
+                    type="text"
                     value={editForm.altEmail}
                     onChange={(e) => setEditForm({ ...editForm, altEmail: e.target.value })}
                     placeholder="alt@example.com"
@@ -543,20 +571,59 @@ export function LeadDetailModal({
               ) : (
                 notes.map(note => (
                   <div key={note.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 group">
-                    <div className="flex justify-between items-start gap-2">
-                      <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap flex-1">{note.content}</p>
-                      <button
-                        onClick={() => handleDeleteNote(note.id)}
-                        disabled={isPending}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
-                        title="Delete note"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      {note.author.name} • {new Date(note.createdAt).toLocaleDateString()}
-                    </div>
+                    {editingNoteId === note.id ? (
+                      <>
+                        <textarea
+                          value={editingNoteContent}
+                          onChange={(e) => setEditingNoteContent(e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                          autoFocus
+                        />
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={() => handleSaveNote(note.id)}
+                            disabled={isPending || !editingNoteContent.trim()}
+                            className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={handleCancelEditNote}
+                            className="px-3 py-1.5 text-gray-600 dark:text-gray-300 text-sm font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap flex-1">{note.content}</p>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleStartEditNote(note)}
+                              disabled={isPending}
+                              className="p-1 text-gray-400 hover:text-blue-500"
+                              title="Edit note"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteNote(note.id)}
+                              disabled={isPending}
+                              className="p-1 text-gray-400 hover:text-red-500"
+                              title="Delete note"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          {note.author.name} • {new Date(note.createdAt).toLocaleDateString()}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))
               )}

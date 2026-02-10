@@ -15,7 +15,7 @@ export const createLeadSchema = z.object({
   twitch: z.string().max(200).optional(),
   instagram: z.string().max(200).optional(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
-  altEmail: z.string().email('Invalid email').optional().or(z.literal('')),
+  altEmail: z.string().max(200).optional().or(z.literal('')),
   discord: z.string().max(200).optional(),
   phone: z.string().max(50).optional(),
   website: z.string().max(500).optional(),
@@ -36,7 +36,7 @@ export const updateLeadSchema = z.object({
   twitch: z.string().max(200).optional().nullable(),
   instagram: z.string().max(200).optional().nullable(),
   email: z.string().email('Invalid email').optional().nullable().or(z.literal('')),
-  altEmail: z.string().email('Invalid email').optional().nullable().or(z.literal('')),
+  altEmail: z.string().max(200).optional().nullable().or(z.literal('')),
   discord: z.string().max(200).optional().nullable(),
   phone: z.string().max(50).optional().nullable(),
   website: z.string().max(500).optional().nullable(),
@@ -60,6 +60,10 @@ export const addNoteSchema = z.object({
   leadId: z.string().cuid(),
   content: z.string().min(1, 'Note content is required').max(5000, 'Note too long'),
   authorId: z.string().cuid(),
+})
+
+export const updateNoteSchema = z.object({
+  content: z.string().min(1, 'Note content is required').max(5000, 'Note too long'),
 })
 
 // ============================================================================
@@ -130,7 +134,7 @@ export const importLeadSchema = z.object({
   twitch: z.string().optional(),
   instagram: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
-  altEmail: z.string().email().optional().or(z.literal('')),
+  altEmail: z.string().max(200).optional().or(z.literal('')),
   discord: z.string().optional(),
   phone: z.string().optional(),
   website: z.string().optional(),
@@ -142,6 +146,7 @@ export const importLeadSchema = z.object({
 export type CreateLeadInput = z.infer<typeof createLeadSchema>
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>
 export type AddNoteInput = z.infer<typeof addNoteSchema>
+export type UpdateNoteInput = z.infer<typeof updateNoteSchema>
 export type CreateTeamMemberInput = z.infer<typeof createTeamMemberSchema>
 export type CreateTagInput = z.infer<typeof createTagSchema>
 export type UpdateTagInput = z.infer<typeof updateTagSchema>
