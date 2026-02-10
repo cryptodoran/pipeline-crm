@@ -359,11 +359,15 @@ export async function updateLead(
   }
 ) {
   // Validate input
-  const validated = updateLeadSchema.parse(data)
-  
+  const result = updateLeadSchema.safeParse(data)
+  if (!result.success) {
+    const fieldErrors = result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')
+    throw new Error(`Validation failed: ${fieldErrors}`)
+  }
+
   const lead = await prisma.lead.update({
     where: { id },
-    data: validated,
+    data: result.data,
   })
   revalidatePath('/')
   return lead

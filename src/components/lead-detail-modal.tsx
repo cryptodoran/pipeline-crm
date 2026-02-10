@@ -202,25 +202,34 @@ export function LeadDetailModal({
       return
     }
     startTransition(async () => {
-      await updateLead(lead.id, {
-        name: editForm.name,
-        telegram: editForm.telegram || undefined,
-        twitter: editForm.twitter || undefined,
-        farcaster: editForm.farcaster || undefined,
-        tiktok: editForm.tiktok || undefined,
-        youtube: editForm.youtube || undefined,
-        twitch: editForm.twitch || undefined,
-        instagram: editForm.instagram || undefined,
-        email: editForm.email || undefined,
-        altEmail: editForm.altEmail || undefined,
-        discord: editForm.discord || undefined,
-        phone: editForm.phone || undefined,
-        website: editForm.website || undefined,
-        linkedin: editForm.linkedin || undefined,
-        pitchAngle: editForm.pitchAngle || undefined,
-      })
-      toast.success('Lead updated')
-      setIsEditing(false)
+      try {
+        await updateLead(lead.id, {
+          name: editForm.name,
+          telegram: editForm.telegram || undefined,
+          twitter: editForm.twitter || undefined,
+          farcaster: editForm.farcaster || undefined,
+          tiktok: editForm.tiktok || undefined,
+          youtube: editForm.youtube || undefined,
+          twitch: editForm.twitch || undefined,
+          instagram: editForm.instagram || undefined,
+          email: editForm.email || undefined,
+          altEmail: editForm.altEmail || undefined,
+          discord: editForm.discord || undefined,
+          phone: editForm.phone || undefined,
+          website: editForm.website || undefined,
+          linkedin: editForm.linkedin || undefined,
+          pitchAngle: editForm.pitchAngle || undefined,
+        })
+        toast.success('Lead updated')
+        setIsEditing(false)
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Failed to save lead'
+        if (message.toLowerCase().includes('email')) {
+          toast.error('Invalid email format. Check email and alt email fields.')
+        } else {
+          toast.error(message)
+        }
+      }
     })
   }
 
