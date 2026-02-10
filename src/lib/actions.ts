@@ -362,7 +362,7 @@ export async function updateLead(
   const result = updateLeadSchema.safeParse(data)
   if (!result.success) {
     const fieldErrors = result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')
-    throw new Error(`Validation failed: ${fieldErrors}`)
+    return { error: fieldErrors }
   }
 
   const lead = await prisma.lead.update({
