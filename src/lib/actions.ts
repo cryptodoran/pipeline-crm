@@ -18,6 +18,253 @@ import {
 import { z } from 'zod'
 
 // ============================================================================
+// DUPLICATE DETECTION HELPERS
+// ============================================================================
+
+function normalizeForComparison(value: string | null | undefined): string | null {
+  if (!value) return null
+  // Strip leading @ for social handles, then lowercase and trim
+  return value.trim().replace(/^@/, '').toLowerCase() || null
+}
+
+function normalizePhone(value: string | null | undefined): string | null {
+  if (!value) return null
+  const digits = value.replace(/\D/g, '')
+  return digits || null
+}
+
+export async function checkDuplicates(data: {
+  name?: string
+  email?: string
+  altEmail?: string
+  phone?: string
+  twitter?: string
+  telegram?: string
+  discord?: string
+  linkedin?: string
+  instagram?: string
+  farcaster?: string
+}) {
+  const orConditions: Record<string, unknown>[] = []
+
+  // Email cross-matching: check new email/altEmail against both email and altEmail columns
+  const emailValues = [data.email, data.altEmail]
+    .map(v => v?.trim())
+    .filter((v): v is string => !!v)
+
+  for (const emailVal of emailValues) {
+    orConditions.push({ email: { equals: emailVal, mode: 'insensitive' as const } })
+    orConditions.push({ altEmail: { equals: emailVal, mode: 'insensitive' as const } })
+  }
+
+  // Phone: normalize and compare
+  const normalizedPhone = normalizePhone(data.phone)
+  if (normalizedPhone) {
+    // We'll filter phone matches in JS after fetching since we need digit-only comparison
+    // But we can still include a raw match for indexing help
+    orConditions.push({ phone: { not: null } })
+  }
+
+  // Social handles with normalization (strip @, case-insensitive)
+  // Search for both with and without @ prefix since DB values may vary
+  const socialFields = ['twitter', 'telegram', 'discord', 'linkedin', 'instagram', 'farcaster'] as const
+  for (const field of socialFields) {
+    const normalized = normalizeForComparison(data[field])
+    if (normalized) {
+      orConditions.push({ [field]: { equals: normalized, mode: 'insensitive' as const } })
+      orConditions.push({ [field]: { equals: `@${normalized}`, mode: 'insensitive' as const } })
+    }
+  }
+
+  // Name: case-insensitive exact match
+  if (data.name?.trim()) {
+    orConditions.push({ name: { equals: data.name.trim(), mode: 'insensitive' as const } })
+  }
+
+  if (orConditions.length === 0) return []
+
+  const matches = await prisma.lead.findMany({
+    where: {
+      archived: false,
+      OR: orConditions,
+    },
+    include: {
+      assignee: true,
+    },
+    take: 50, // Fetch more than needed so we can filter phone matches
+  })
+
+  // Now determine which fields actually matched for each result
+  type MatchResult = {
+    id: string
+    name: string
+    stage: string
+    assigneeName: string | null
+    matchedFields: string[]
+  }
+
+  const results: MatchResult[] = []
+
+  for (const match of matches) {
+    const matchedFields: string[] = []
+
+    // Check email cross-matches
+    for (const emailVal of emailValues) {
+      if (match.email && match.email.toLowerCase() === emailVal.toLowerCase()) {
+        matchedFields.push('email')
+      }
+      if (match.altEmail && match.altEmail.toLowerCase() === emailVal.toLowerCase()) {
+        matchedFields.push('altEmail')
+      }
+    }
+
+    // Check phone (digit-only comparison)
+    if (normalizedPhone && match.phone) {
+      const matchPhone = normalizePhone(match.phone)
+      if (matchPhone === normalizedPhone) {
+        matchedFields.push('phone')
+      }
+    }
+
+    // Check social handles
+    for (const field of socialFields) {
+      const inputNorm = normalizeForComparison(data[field])
+      const matchNorm = normalizeForComparison(match[field])
+      if (inputNorm && matchNorm && inputNorm === matchNorm) {
+        matchedFields.push(field)
+      }
+    }
+
+    // Check name
+    if (data.name?.trim() && match.name.toLowerCase() === data.name.trim().toLowerCase()) {
+      matchedFields.push('name')
+    }
+
+    // Only include if there's an actual field match (phone OR query may have produced false positives)
+    if (matchedFields.length > 0) {
+      results.push({
+        id: match.id,
+        name: match.name,
+        stage: match.stage,
+        assigneeName: match.assignee?.name || null,
+        matchedFields: Array.from(new Set(matchedFields)),
+      })
+    }
+  }
+
+  return results.slice(0, 10)
+}
+
+export async function sweepDuplicates(): Promise<{ duplicateCount: number; groupCount: number }> {
+  const leads = await prisma.lead.findMany({
+    where: { archived: false },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      altEmail: true,
+      phone: true,
+      twitter: true,
+      telegram: true,
+      discord: true,
+      linkedin: true,
+      instagram: true,
+      farcaster: true,
+    },
+  })
+
+  // Build a hash map: normalized value -> set of lead IDs
+  const valueToLeadIds = new Map<string, Set<string>>()
+
+  function addToMap(key: string, value: string | null | undefined, leadId: string) {
+    if (!value) return
+    let normalized: string | null
+    if (key === 'phone') {
+      normalized = normalizePhone(value)
+    } else {
+      normalized = normalizeForComparison(value)
+    }
+    if (!normalized) return
+
+    const mapKey = `${key}:${normalized}`
+    if (!valueToLeadIds.has(mapKey)) {
+      valueToLeadIds.set(mapKey, new Set())
+    }
+    valueToLeadIds.get(mapKey)!.add(leadId)
+  }
+
+  for (const lead of leads) {
+    addToMap('name', lead.name, lead.id)
+    // Cross-match emails: both email and altEmail go into the same "email" bucket
+    addToMap('email', lead.email, lead.id)
+    addToMap('email', lead.altEmail, lead.id)
+    addToMap('phone', lead.phone, lead.id)
+    addToMap('twitter', lead.twitter, lead.id)
+    addToMap('telegram', lead.telegram, lead.id)
+    addToMap('discord', lead.discord, lead.id)
+    addToMap('linkedin', lead.linkedin, lead.id)
+    addToMap('instagram', lead.instagram, lead.id)
+    addToMap('farcaster', lead.farcaster, lead.id)
+  }
+
+  // Find all lead IDs that share at least one value with another lead
+  const duplicateLeadIds = new Set<string>()
+  let groupCount = 0
+
+  Array.from(valueToLeadIds.values()).forEach(leadIds => {
+    if (leadIds.size > 1) {
+      groupCount++
+      Array.from(leadIds).forEach(id => {
+        duplicateLeadIds.add(id)
+      })
+    }
+  })
+
+  // Create or find the "Possible Duplicate" tag
+  let tag = await prisma.tag.findFirst({
+    where: { name: 'Possible Duplicate' },
+  })
+  if (!tag) {
+    tag = await prisma.tag.create({
+      data: { name: 'Possible Duplicate', color: '#f59e0b' },
+    })
+  }
+
+  const duplicateIdArray = Array.from(duplicateLeadIds)
+
+  // Apply tag to duplicates
+  for (const leadId of duplicateIdArray) {
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        tags: { connect: { id: tag.id } },
+      },
+    }).catch(() => {
+      // Ignore if already connected
+    })
+  }
+
+  // Remove tag from non-duplicates (leads that currently have the tag but are not in duplicateLeadIds)
+  const nonDuplicateIds = leads
+    .map(l => l.id)
+    .filter(id => !duplicateLeadIds.has(id))
+
+  for (const leadId of nonDuplicateIds) {
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        tags: { disconnect: { id: tag.id } },
+      },
+    }).catch(() => {
+      // Ignore if not connected
+    })
+  }
+
+  revalidatePath('/')
+  return { duplicateCount: duplicateLeadIds.size, groupCount }
+}
+
+// ============================================================================
 // LEAD ACTIONS
 // ============================================================================
 

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, X } from 'lucide-react'
-import { createLead, addTagToLead } from '@/lib/actions'
+import { Plus, X, AlertTriangle } from 'lucide-react'
+import { createLead, addTagToLead, checkDuplicates } from '@/lib/actions'
 import { LEAD_SOURCES } from '@/lib/types'
 import { TagInput } from './tag-input'
 
@@ -35,6 +35,8 @@ interface AddLeadButtonProps {
 export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [isChecking, setIsChecking] = useState(false)
+  const [duplicateWarning, setDuplicateWarning] = useState<Awaited<ReturnType<typeof checkDuplicates>> | null>(null)
 
   // Find the default stage key
   const defaultStage = stages.find(s => s.isDefault)?.key || stages[0]?.key || 'NEW'
@@ -62,10 +64,7 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
   })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.name.trim()) return
-
+  const doCreateLead = () => {
     startTransition(async () => {
       const lead = await createLead({
         name: formData.name.trim(),
@@ -117,8 +116,47 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
         initialNote: '',
       })
       setSelectedTags([])
+      setDuplicateWarning(null)
       setIsOpen(false)
     })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) return
+
+    // If user already saw the warning, proceed with creation
+    if (duplicateWarning) {
+      doCreateLead()
+      return
+    }
+
+    // Check for duplicates first
+    setIsChecking(true)
+    try {
+      const duplicates = await checkDuplicates({
+        name: formData.name.trim(),
+        email: formData.email.trim() || undefined,
+        altEmail: formData.altEmail.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        twitter: formData.twitter.trim() || undefined,
+        telegram: formData.telegram.trim() || undefined,
+        discord: formData.discord.trim() || undefined,
+        linkedin: formData.linkedin.trim() || undefined,
+        instagram: formData.instagram.trim() || undefined,
+        farcaster: formData.farcaster.trim() || undefined,
+      })
+
+      if (duplicates.length > 0) {
+        setDuplicateWarning(duplicates)
+        return
+      }
+
+      // No duplicates, create immediately
+      doCreateLead()
+    } finally {
+      setIsChecking(false)
+    }
   }
 
   return (
@@ -134,12 +172,12 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
+          <div className="absolute inset-0 bg-black/50" onClick={() => { setIsOpen(false); setDuplicateWarning(null) }} />
 
           <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Lead</h2>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <button onClick={() => { setIsOpen(false); setDuplicateWarning(null) }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -357,21 +395,50 @@ export function AddLeadButton({ teamMembers, currentUserId, stages }: AddLeadBut
                 />
               </div>
 
+              {/* Duplicate Warning */}
+              {duplicateWarning && duplicateWarning.length > 0 && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                      Possible duplicates found
+                    </p>
+                  </div>
+                  <ul className="space-y-2">
+                    {duplicateWarning.map(dup => (
+                      <li key={dup.id} className="text-sm text-amber-700 dark:text-amber-300 flex items-start gap-2">
+                        <span className="font-medium">{dup.name}</span>
+                        <span className="text-amber-600 dark:text-amber-400">
+                          ({dup.stage}{dup.assigneeName ? ` · ${dup.assigneeName}` : ''})
+                        </span>
+                        <span className="text-amber-500 dark:text-amber-500 text-xs mt-0.5">
+                          matched: {dup.matchedFields.join(', ')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => { setIsOpen(false); setDuplicateWarning(null) }}
                   className="px-4 py-2 text-gray-700 font-medium rounded-lg hover:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isPending || !formData.name.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isPending || isChecking || !formData.name.trim()}
+                  className={`px-4 py-2 font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${
+                    duplicateWarning
+                      ? 'bg-amber-500 text-white hover:bg-amber-600'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
                 >
-                  {isPending ? 'Adding...' : 'Add Lead'}
+                  {isChecking ? 'Checking...' : isPending ? 'Adding...' : duplicateWarning ? 'Create Anyway' : 'Add Lead'}
                 </button>
               </div>
             </form>

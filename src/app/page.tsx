@@ -6,6 +6,7 @@ import { AddLeadButton } from '@/components/add-lead-button'
 import { ExportButton } from '@/components/export-button'
 import { ImportButton } from '@/components/import-button'
 import { StageSettings } from '@/components/stage-settings'
+import { SweepDuplicatesButton } from '@/components/sweep-duplicates-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +38,7 @@ export default async function Home() {
         </div>
         <div className="flex items-center gap-2">
           <StageSettings stages={stagesData} />
+          <SweepDuplicatesButton />
           <ImportButton />
           <ExportButton leads={leads} />
           <AddLeadButton teamMembers={teamMembers} currentUserId={currentUserId} stages={stagesData} />
